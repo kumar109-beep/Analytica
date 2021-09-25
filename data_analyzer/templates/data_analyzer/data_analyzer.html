@@ -1,0 +1,147 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<script>
+    var worker ="data_analyzer";
+</script>
+    
+<!-- THE MODAL WE WILL BE USING -->
+<div class="modal" role="document" id="csv_analyzer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Feed CSV Analyzer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea placeholder="or type or paste CSV text here" class="form-control" id="textarea" style="min-width: 100%"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="animated">
+  <div class="animated fadeIn">
+      <div class="row">
+          <div class="col-md-12">
+              <script type="text/javascript" src="{%static 'admin_panel/assets/js/jquery-ui.min.js' %}"></script>
+              <script type="text/javascript" src="{%static 'admin_panel/assets/js/d3.min.js' %}"></script>
+              <script type="text/javascript" src="{%static 'admin_panel/assets/js/jquery.ui.touch-punch.min.js' %}"></script>
+              <script type="text/javascript" src="{%static 'admin_panel/assets/js/papaparse.min.js' %}"></script>
+              <script src="{%static 'admin_panel/vendors/plotly/js/plotly-basic-latest.min.js'%}"></script>
+              <!-- PivotTable.js libs from ../dist -->
+              <link rel="stylesheet" type="text/css" href="{%static 'admin_panel/vendors/pivottable_js/css/pivot.css'%}">
+              <script type="text/javascript" src="{%static 'admin_panel/vendors/pivottable_js/js/pivot.js'%}"></script>
+              <script type="text/javascript" src="{%static 'admin_panel/vendors/pivottable_js/js/d3_renderers.js'%}"></script>
+              <script type="text/javascript" src="{%static 'admin_panel/vendors/pivottable_js/js/plotly_renderers.js'%}"></script>
+
+            <div class="card">
+                <div class="card-header text-light bg-dark">
+                    <div class="col-sm-8">
+                        <strong class="card-title">CSV Analyzer</strong><br />
+                        <em><small>note: the data never leaves your browser!</small></em>
+                    </div>
+                    
+                    <div class="input-group  col-sm-4">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="inputGroupFileAddon01" data-toggle="modal" data-target="#csv_analyzer">Type/Paste</span>
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="csv" name="filename">
+                            <label class="custom-file-label" for="customFile">Choose file</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-body">
+                        
+                        <div id="output" style="margin: 10px;"></div>
+                </div>
+            </div><!-- .card -->
+          </div><!-- .col12 -->
+      </div><!-- .row -->
+  </div><!-- .animated fadeIn -->
+</div><!-- .animated -->
+
+
+<script type="text/javascript">
+
+    jQuery('#csv').on('change',function(){
+            //get the file name
+            var fileName = jQuery(this).val().replace('C:\\fakepath\\', "");
+            console.log(fileName);
+            //replace the "Choose a file" label
+            jQuery(this).next('.custom-file-label').html(fileName);
+        })
+
+
+
+
+    jQuery(function(){
+        var renderers = jQuery.extend(
+            jQuery.pivotUtilities.renderers,
+            jQuery.pivotUtilities.plotly_renderers,
+            jQuery.pivotUtilities.d3_renderers,
+            jQuery.pivotUtilities.export_renderers
+            );
+
+        var parseAndPivot = function(f) {
+            jQuery("#output").html("<p align='center' style='color:grey;'>(processing...)</p>")
+            Papa.parse(f, {
+                skipEmptyLines: true,
+                error: function(e){ alert(e) },
+                complete: function(parsed){
+                    jQuery("#output").pivotUI(parsed.data, { renderers: renderers }, true);
+                }
+            });
+        };
+
+        jQuery("#csv").bind("change", function(event){
+            parseAndPivot(event.target.files[0]);
+        });
+
+        jQuery("#textarea").bind("input change", function(){
+            parseAndPivot(jQuery("#textarea").val());
+        });
+
+        var dragging = function(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            evt.originalEvent.dataTransfer.dropEffect = 'copy';
+            jQuery("body").removeClass("whiteborder").addClass("greyborder");
+        };
+
+        var endDrag = function(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            evt.originalEvent.dataTransfer.dropEffect = 'copy';
+            jQuery("body").removeClass("greyborder").addClass("whiteborder");
+        };
+
+        var dropped = function(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            jQuery("body").removeClass("greyborder").addClass("whiteborder");
+            parseAndPivot(evt.originalEvent.dataTransfer.files[0]);
+        };
+
+        jQuery("html")
+            .on("dragover", dragging)
+            .on("dragend", endDrag)
+            .on("dragexit", endDrag)
+            .on("dragleave", endDrag)
+            .on("drop", dropped);
+     });
+</script>
+
+
+{% endblock %}

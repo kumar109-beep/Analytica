@@ -1,0 +1,122 @@
+
+{% extends 'home/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<script src="{%static 'admin_panel/vendors/jquery/dist/jquery.min.js' %}"></script>
+{% if request.user.is_authenticated %}
+  <meta http-equiv="REFRESH" content="0;url={% url 'analytics' 'asha'%}">
+{% else %}
+
+                <form method="post" novalidate>
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <div class="checkbox">
+                                <label>
+                            <input type="checkbox"> Remember Me
+                        </label>
+                                <label class="pull-right">
+                            <a href="{% url 'password_reset' %}">Forgotten Password?</a>
+                        </label>
+
+                            </div>
+                            <button type="submit" class="btn btn-success btn-flat m-b-30 m-t-30">Sign in</button>
+                </form>
+                <button type="button" class="btn btn-danger mb-1" data-toggle="modal" data-target="#mediumModal">
+                    Login through BCPM-MIS
+                </button>
+{% endif %}
+
+<div class="modal fade" id="mediumModal" tabindex="-1" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mediumModalLabel">BCPM-MIS Authorisation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+
+                <div id="auth_failed_msg" style="display: none"  class="sufee-alert alert with-close alert-danger alert-dismissible fade show">
+                    <span class="badge badge-pill badge-danger">Failed</span>
+                    Invalid Login Credentials.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div id="auth_success_msg" style="display: none" class="sufee-alert alert with-close alert-success alert-dismissible fade show">
+                    <span class="badge badge-pill badge-success">Success</span>
+                    BCPM Authentication Successful.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+
+
+                
+                <form autocomplete="off" id="bcpm_login_form" action="{% url 'bcpm_login'%}" method="post" class="">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon"><i class="fa fa-user"></i></div>
+                            <input required type="text" id="username" name="user_id" placeholder="User ID" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon"><i class="fa fa-lock"></i></div>
+                            <input required type="password" id="password" name="pass" placeholder="Password" class="form-control">
+                        </div>
+                    </div>
+                    <!-- <div class="form-actions form-group"><button type="submit" class="btn btn-success btn-sm">Submit</button></div> -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="authorize();">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+
+    function authorize()
+    {
+        var $form = jQuery("#bcpm_login_form");
+
+        jQuery.ajax({
+            url : 'http://nhm-bcpm.in/nhm/login_dashboard.php',
+            type : 'POST',
+            data : $form.serialize(),
+            dataType:'json',
+            success : function(data) {         
+                if(data.status == 1)
+                {
+                    jQuery("#auth_failed_msg").hide();
+                    jQuery("#auth_success_msg").show();
+                    $form.submit();
+                }     
+                else
+                {
+                    jQuery("#auth_failed_msg").show();
+                }
+                
+            },
+            error : function(request,error)
+            {
+                console.log("Request: "+JSON.stringify(request));
+            }
+        });
+    }
+    
+</script>
+
+{% endblock %}

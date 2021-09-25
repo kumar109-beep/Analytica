@@ -1,0 +1,204 @@
+<!-- Header-->
+{%load static%}
+<style>
+/* .d_range{
+  width: 179px !important;
+} */
+
+.bootstrap-select:not([class*="col-"]):not([class*="form-control"]):not(.input-group-btn)
+{
+    width: 200px !important;
+}
+</style>
+<div class="breadcrumbs">
+    <h1>{{user.confirmation_key}}</h1>
+    <div class="col-sm-3">
+        <div class="page-header float-left">
+            <div class="page-title">
+                <h1 class="text-uppercase">{{profile}}{{survey_name}}</h1>
+            </div>
+        </div>
+    </div>
+
+    {% if "nfhs_4" in survey_name %}
+        <div class="col-sm-9">
+            <div class="page-header">
+                <div class="page-title">
+                    <ol class="breadcrumb text-right">
+                        <select title="Select Indicator" data-actions-box="true" id="indicator_select" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count>2">
+                        </select>
+                        <select title="Select District" data-actions-box="true" id="district_select" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count>2">
+                        </select>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if "Census_2011" in survey_name %}
+        <div class="col-sm-9">
+            <div class="page-header">
+                <div class="page-title">
+                    <ol class="breadcrumb text-right">
+                        <select title="Select State" id="state_select" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count>2" >
+                        </select>
+                        <select title="Select District" id="district_select" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count>2" >
+                        </select>
+                        <select title="Select Indicator" id="indicator_select" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count>2" >
+                        </select>
+                        <select title="Select Type" id="type_select" class="selectpicker" multiple data-live-search="true" data-selected-text-format="count>2" >
+                        </select>
+                        <div class="form-group">
+                            <button id="set_range" type="button" class="btn btn-primary">Go</button>
+                        </div>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if "payment" in profile %}
+        <div class="col-sm-3">
+            <div class="page-header">
+                <div class="page-title">
+                    <ol class="breadcrumb text-right">
+                        {% if "nfhs_4" in survey_name %}
+                            <!-- <select data-actions-box="true" id="indicator_select" class="selectpicker form-control" multiple data-live-search="true" data-selected-text-format="count>2">
+                            </select> -->
+                        {% endif %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="page-header">
+                <div class="page-title">
+                    <ol class="breadcrumb text-right">
+                        <form id="form" name="form" class="form-inline" style="float: right;margin-top: -8px;">
+                            <div class="form-group input-daterange">
+                                <input id="startDate" name="startDate" type="text" class="form-control" />
+                                <div class="input-group-addon">to</div>
+                                <input id="endDate" name="endDate" type="text" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <button id="set_range" type="button" class="btn btn-primary">Go</button>
+                            </div>
+                        </form>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div id="worker_panel_head" class="custom-tab">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <a tabname="analytics" class="nav-item nav-link text-center" id="custom-nav-analytics-tab" data-toggle="tab" href="#custom-nav-analytics" role="tab" aria-controls="custom-nav-analytics" aria-selected="false"><i class="fa fa-bar-chart"></i> Analytics</a>
+                <a tabname="records" class="nav-item nav-link text-center" id="custom-nav-records-tab" data-toggle="tab" href="#custom- nav-home" role="tab" aria-controls="custom-nav-records" aria-selected="false"><i class="fa fa-table"></i> Records</a>
+                <a tabname="gis" class="nav-item nav-link show text-center" id="custom-nav-gis-tab" data-toggle="tab" href="#custom-nav-gis" role="tab" aria-controls="custom-nav-gis" aria-selected="true"><i class="fa fa-map"></i>{% if survey_name or "nfhs_4" in profile %} Comparator {%else%} GIS {%endif%}</a>
+                <!-- <a {% if "payment" in profile or "committee" in profile or "member" in profile %} style="pointer-events: none;"  {%endif%} tabname="gis" class="nav-item nav-link show text-center" id="custom-nav-gis-tab" data-toggle="tab" href="#custom-nav-gis" role="tab" aria-controls="custom-nav-gis" aria-selected="true"><i class="fa fa-map"></i>{% if survey_name or "nfhs_4" in profile %} Comparator {%else%} GIS {%endif%}</a> -->
+            </div>
+        </nav>
+        <!-- <div class="tab-content pl-3 pt-2" id="nav-tabContent">
+            <div class="tab-pane fade" id="custom-nav-records" role="tabpanel" aria-labelledby="custom-nav-records-tab">
+                <p>Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit
+                    butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, irure terry richardson ex sd. Alip placeat salvia cillum iphone. Seitan alip s cardigan american apparel, butcher voluptate nisi .</p>
+            </div>
+            <div class="tab-pane fade" id="custom-nav-analytics" role="tabpanel" aria-labelledby="custom-nav-analytics-tab">
+                <p>Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit
+                    butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, irure terry richardson ex sd. Alip placeat salvia cillum iphone. Seitan alip s cardigan american apparel, butcher voluptate nisi .</p>
+            </div>
+            <div class="tab-pane fade active show" id="custom-nav-gis" role="tabpanel" aria-labelledby="custom-nav-gis-tab">
+                <p>Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit
+                    butcher retro keffiyeh dreamcatcher synth. Cosby sweater eu banh mi, irure terry richardson ex sd. Alip placeat salvia cillum iphone. Seitan alip s cardigan american apparel, butcher voluptate nisi .</p>
+            </div>
+        </div> -->
+    </div>
+    <script>
+        // var worker_panel_head = ["records", "analytics", "gis"];
+        jQuery(document).ready(function(){
+            var active_tab = Cookies.get("active_tab", "analytics");
+            jQuery("a[tabname='" + active_tab + "']").addClass("active");
+            var pageURL = jQuery(location).attr("href");
+            active_tab = (pageURL.split("/")[4]);
+    
+            jQuery(".nav-item, .nav-link").click(function(){
+                Cookies.set('active_tab', jQuery(this).attr('tabname') );
+                var pageURL = jQuery(location).attr("href");
+                var old_tab = (pageURL.split("/")[4]);
+                pageURL = pageURL.replace(old_tab, jQuery(this).attr('tabname'));
+                // // alert(pageURL);
+                window.location.replace(pageURL);
+            });
+            
+        });
+
+        var date_selection_conf = {
+            changeMonth: true,  
+            changeYear: true,
+            autoclose: true,
+            minViewMode: 'months',
+            viewMode: 'months',
+            pickTime: false,
+            format: 'MM-yyyy',
+            startDate: new Date(2019, 3, 01),
+            endDate: "{{allow_last_selected_session}}"
+        }
+
+        jQuery("#startDate").datepicker(
+            date_selection_conf
+        ).on('changeDate', function(selected){
+            var minDate = new Date(selected.date.valueOf());
+            jQuery('#endDate').datepicker('setStartDate', minDate);
+        });
+
+        jQuery("#endDate").datepicker(
+            date_selection_conf
+        ).on('changeDate', function(selected){
+            var minDate = new Date(selected.date.valueOf());
+            jQuery('#startDate').datepicker('setEndDate', minDate);
+        });
+
+        
+        
+        
+        jQuery("#startDate").datepicker("update",  "{% if request.COOKIES.session_start_date %} {{request.COOKIES.session_start_date}} {%else%} {{allow_last_selected_session}} {%endif%}")
+        jQuery("#endDate").datepicker("update",  "{% if request.COOKIES.session_end_date %} {{request.COOKIES.session_end_date}} {%else%} {{allow_last_selected_session}} {%endif%}")
+
+
+
+        jQuery("#set_range").click(function (param) {
+            Cookies.set("session_start_date", jQuery("#startDate").val());
+            Cookies.set("session_end_date", jQuery("#endDate").val());
+            // location.reload();
+            init();
+         })
+
+
+
+
+
+
+
+        jQuery('#payment_session').datepicker({
+            changeMonth: true,  
+            changeYear: true,
+            autoclose: true,
+            minViewMode: 'months',
+            viewMode: 'months',
+            pickTime: false,
+            format: 'MM-yyyy',
+            startDate: new Date(2019, 3, 01),
+            endDate: "{{allow_last_selected_session}}"
+            // endDate : Date.parse("{{request.COOKIES.selected_payment_session}}")
+        }).on('changeDate', function(selected){
+            console.log(selected)
+            session = selected.format().replace(" ","-");
+            Cookies.set('selected_payment_session', session);
+            location.reload();
+        });
+
+
+
+    </script>

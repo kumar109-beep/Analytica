@@ -1,0 +1,265 @@
+<!-- Left Panel -->
+{% load static %}
+{% load permission_tags %}
+<style>
+@-webkit-keyframes color_change {
+    from { background-color: #FFF; }
+    to { background-color: #272C33; }
+}
+@-moz-keyframes color_change {
+    from { background-color: #FFF; }
+    to { background-color: #272C33; }
+}
+@-ms-keyframes color_change {
+    from { background-color: #FFF; }
+    to { background-color: #272C33; }
+}
+@-o-keyframes color_change {
+    from { background-color: #FFF; }
+    to { background-color: #272C33; }
+}
+@keyframes color_change {
+    from { background-color: #FFF; }
+    to { background-color: #272C33; }
+}
+
+.active_dot {
+    background-color: #FFF;
+    border-radius: 15px;
+    width: 15px;
+    height: 15px;
+    -webkit-animation: color_change 1s infinite alternate;
+    -moz-animation: color_change 1s infinite alternate;  
+    -ms-animation: color_change 1s infinite alternate;  
+    -o-animation: color_change 1s infinite alternate;  
+    animation: color_change 1s infinite alternate;  
+    margin-top: 10px;
+    margin-left: 10px;
+}
+</style>
+    <aside id="left-panel" class="left-panel">
+        <nav class="navbar navbar-expand-sm navbar-default">
+
+            <div class="navbar-header">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-menu" aria-controls="main-menu" aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="fa fa-bars"></i>
+                </button>
+                {% if user|has_role:'nhp_user' %}
+                    <a class="navbar-brand" href="{%url 'analytics' profile='committees'%}"><img src="{% static 'admin_panel/images/logo.png' %}" alt="Logo"></a>
+                {% else %}
+                    <a class="navbar-brand" href="{%url 'analytics' profile='asha'%}"><img src="{% static 'admin_panel/images/logo.png' %}" alt="Logo"></a>
+                {% endif %}
+                {% if user|has_role:'nhp_user' %}
+                    <a class="navbar-brand hidden" href="{%url 'analytics' profile='committees'%}"><img src="{% static 'admin_panel/images/logo2.png' %}" alt="Logo"></a>
+                {% else %}
+                    <a class="navbar-brand hidden" href="{%url 'analytics' profile='asha'%}"><img src="{% static 'admin_panel/images/logo2.png' %}" alt="Logo"></a>
+                {% endif %}
+                
+            </div>
+
+            <div id="main-menu" class="main-menu collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a data-toggle="tooltip" data-placement="top" title="Data Last Synced"> <i class="menu-icon fa fa-dashboard"></i><span id="last_synced">{%if last_synced%} {{last_synced}} {%else%}Last Synced N/A{%endif%}</span></a>
+                    </li>
+                    {% if user|has_role:'guest' %}
+                    <h3 class="menu-title">Analytics</h3><!-- /.menu-title -->
+                    <li class="menu-item-has-children dropdown">
+                        <a id="health_worker" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-group"></i>Health Worker Profile</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="fa fa-female"></i><a href="{%url 'analytics' profile='health_worker'%}">Health Worker {% if profile == 'health_worker' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    {% if user|has_role:'admin, contributor, member' %}
+                        <h3 class="menu-title">Analytics</h3><!-- /.menu-title -->
+                    
+                        {% if user|can:'view_profile_analytic'  or user|can:'view_profile_record' or user|can:'view_profile_analytic' %}
+                        <li class="menu-item-has-children dropdown">
+                            <a id="health_worker" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-group"></i>Health Worker Profile</a>
+                            <ul class="sub-menu children dropdown-menu">
+                                <li><i class="fa fa-female"></i><a href="{%url 'analytics' profile='asha'%}">ASHA {% if profile == 'asha' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                                <li><i class="fa fa-female"></i><a href="{% url 'analytics' profile='sangini'%}">SANGINI {% if profile == 'sangini' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                                <li><i class="fa fa-user-md"></i><a href="{% url 'analytics' profile='anm'%}">ANM {% if profile == 'anm' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                                <li><i class="fa fa-user-md"></i><a href="{% url 'analytics' profile='cho'%}">CHO <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></a></li>
+                                <li><i class="fa fa-user-md"></i><a href="{% url 'analytics' profile='hwc_profile'%}">HWC <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+
+                    {% endif %}
+
+                    {% if user|can:'view_payment_analytic' or user|can:'view_payment_record' or user|can:'view_payment_analytic' %}
+                    <li class="menu-item-has-children dropdown">
+                        <a id="health_worker_payment" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-rupee"></i>Worker Payment</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li class="active"><i class="fa fa-female"></i><a href="{%url 'analytics' profile='asha_payment'%}">ASHA {% if profile == 'asha_payment' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                            <li><i class="fa fa-female"></i><a href="{% url 'analytics' profile='sangini_payment'%}">SANGINI {% if profile == 'sangini_payment' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    {% if user|can:'view_performance_analytic' or user|can:'view_performance_record' or user|can:'view_performance_gis' %}
+                    <li class="menu-item-has-children dropdown">
+                        <a id="health_worker_payment_performance" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-star-half-o"></i>Performance Index</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li class="active"><i class="fa fa-female"></i><a href="{%url 'analytics' profile='asha_payment_status'%}">ASHA {% if profile == 'asha_payment_status' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                            <li><i class="fa fa-female"></i><a href="{% url 'analytics' profile='sangini_payment_status'%}">SANGINI {% if profile == 'sangini_payment_status' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                           
+                            
+                        </ul>
+                    </li>
+                    {% endif %}
+
+
+                    {% if user|has_role:'nhp_user' %}
+                        <h3 class="menu-title">Analytics (NHP)</h3><!-- /.menu-title -->
+                    {% endif %}
+
+                    {% if user|can:'view_nhp_profile_analytic' or user|can:'view_nhp_profile_record' or user|can:'view_nhp_profile_gis' %}
+                    <li class="menu-item-has-children dropdown">
+                        <a id="health_worker" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-building-o"></i>Committee Profile</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="fa fa-home"></i><a href="{%url 'analytics' profile='committees'%}">Committees {% if profile == 'committees' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                            <li><i class="fa fa-users"></i><a href="{%url 'analytics' profile='members'%}">Members {% if profile == 'members' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+
+                    {% if user|can:'view_nhp_profile_analytic' or user|can:'view_nhp_profile_record' or user|can:'view_nhp_profile_gis' %}
+                    <li class="menu-item-has-children dropdown">
+                        <a id="health_worker" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-rupee"></i>Result-based Financing</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="fa fa-sitemap"></i><a href="{%url 'analytics' profile='rbf_Manager'%}">RBF Manager {% if profile == 'rbf_Manager' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                            <li><i class="fa fa-sitemap"></i><a href="{%url 'analytics' profile='action_plan'%}">Action Plan {% if profile == 'action_plan' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                            
+                            <li><i class="fa fa-sitemap"></i><a href="{%url 'analytics' profile='fund_status_with_six_month_expenditure'%}">Plan vs Expenditure {% if profile == 'fund_status_with_six_month_expenditure' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+
+                            
+                            <li><i class="fa fa-sitemap"></i><a href="{%url 'analytics' profile='nhp_report'%}">RBF Analyser {% if profile == 'nhp_report' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item-has-children dropdown">
+                        <a id="health_worker_payment_performance" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-star-half-o"></i>Performance Index</a>
+                        <ul class="sub-menu children dropdown-menu">
+
+                            <li class="active">
+                                <i class="fa fa-suitcase"></i>
+                                <a href="{%url 'analytics' profile='VHC_target_indicators_consolidated'%}">
+                                    VHC Target Indicator
+                                    {% if profile == 'VHC_target_indicators_consolidated' %} 
+                                    <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 
+                                    {% endif %}
+                                </a>
+                            </li>
+
+
+                            <li class="active">
+                                <i class="fa fa-suitcase"></i>
+                                <a href="{%url 'analytics' profile='HSCMC_target_indicators_consolidated'%}">
+                                    HSCMC Target Indicator
+                                    {% if profile == 'HSCMC_target_indicators_consolidated' %} 
+                                    <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 
+                                    {% endif %}
+                                </a>
+                            </li>
+
+
+                            <li class="active">
+                                <i class="fa fa-suitcase"></i>
+                                <a href="{%url 'analytics' profile='HCMC_target_indicators_consolidated'%}">
+                                    HCMC Target Indicator
+                                    {% if profile == 'HCMC_target_indicators_consolidated' %} 
+                                    <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> 
+                                    {% endif %}
+                                </a>
+                            </li>
+
+                            
+
+                            <!-- <li class="active"><i class="fa fa-suitcase"></i><a href="{%url 'analytics' profile='six_monthly_expenditure'%}">Six Month {% if profile == 'Six_Monthly_Expenditure' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li> -->
+                        </ul>
+                    </li>
+
+                    <!-- <li class="menu-item-has-children dropdown"> -->
+                        <!-- <a id="nhp_custom_reports" href="{%url 'reports' %}" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-file-text-o"></i>Reports</a> -->
+                        <!-- <ul class="sub-menu children dropdown-menu">
+                            <li class="active"><i class="fa fa-suitcase"></i><a href="{%url 'analytics' profile='six_monthly_expenditure'%}">Six Month {% if profile == 'Six_Monthly_Expenditure' %} <span class="active_dot">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> {% endif %}</a></li>
+                        </ul> -->
+                    <!-- </li> -->
+
+                    <li>
+                        <a href="{%url 'reports'%}"> <i class="menu-icon fa fa-file-text-o"></i>Reports</a>
+                    </li>
+                    {% endif %}
+
+                    {% if user|has_role:'admin, contributor, member' %}
+                        <h3 class="menu-title">MIS Group</h3>
+                        <li>
+                            <a target="_blank" href="http://180.179.206.169:8080/VHNDDashboard"> <i class="menu-icon ti-desktop"></i>VHND MIS</a>
+                        </li>
+                        <li>
+                            <a target="_blank" href="http://180.179.206.169:8080/HWCMIS/"> <i class="menu-icon ti-desktop"></i>HWC MIS</a>
+                        </li>
+                        <li>
+                            <a target="_blank" href="https://dashboard.afssapp.org/E/crsindia/login"> <i class="menu-icon ti-desktop"></i>Sangini App Dashboard</a>
+                        </li>
+                        <!-- <li>
+                            <a target="_blank" href="https://ncd.nhp.gov.in/login"> <i class="menu-icon ti-desktop"></i>NCD App GoI</a>
+                        </li> -->
+                    {%endif%}
+
+
+                    
+                    <!-- <h3 class="menu-title">Surveys</h3>
+
+                    <li class="menu-item-has-children dropdown">
+                        <a id="survey_panel" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon ti-microphone-alt"></i>NFHS</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="ti-id-badge"></i><a href="{% url 'survey_analytics' survey_name='uttar_pradesh_nfhs_4' %}">NFHS-4 (UP)</a></li>
+                            <li><i class="ti-id-badge"></i><a href="{% url 'survey_analytics' survey_name='nagaland_nfhs_4' %}">NFHS-4 (Nagaland)</a></li> -->
+                            <!-- <li><i class="ti-id-badge"></i><a>NFHS-3</a></li> -->
+                        <!-- </ul>
+                    </li> -->
+
+
+                    <!-- <li class="menu-item-has-children dropdown">
+                        <a id="survey_panel" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon ti-microphone-alt"></i>Census</a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="ti-id-badge"></i><a href="{% url 'survey_analytics' survey_name='Census_2011' %}">Census-2011</a></li> -->
+                            <!-- <li><i class="ti-id-badge"></i><a>NFHS-3</a></li> -->
+                        <!-- </ul>
+                    </li> -->
+
+
+                    <!-- <h3 class="menu-title">Tools</h3>
+                    <li>
+                        <a href="{% url 'analyzer' %}"> <i class="menu-icon ti-package"></i>CSV Analyzer</a>
+                    </li> -->
+
+
+
+
+                    
+                    <h3 class="menu-title">Administration</h3><!-- /.menu-title -->
+
+                    <li class="menu-item-has-children dropdown">
+                        <a id="panel_management" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon ti-panel"></i>Panel Management</a>
+                        <ul class="sub-menu children dropdown-menu">
+                        {% if user|can:'view_user' %}
+                            <li><i class="ti-user"></i><a href="{% url 'contributor_list' %}">Manage Users </a></li>
+                            <li><i class="fa fa-edit"></i><a href="{% url 'edit_requests' %}">Edit Requests </a></li>
+                        {% endif %}
+                            <li><i class="ti-eraser"></i><a href="" onclick="confirm('Do you want to clean the local cache?') ? localStorage.clear() : ''">Clear Cache </a></li>
+                        </ul>
+                    </li>
+                    
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </nav>
+    </aside><!-- /#left-panel -->
+
+    <!-- Left Panel -->

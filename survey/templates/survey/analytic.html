@@ -1,0 +1,303 @@
+{% extends 'admin_panel/layout/base.html' %}
+
+{% load static %}
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block header_tab %}
+
+<!-- <script src="{%static 'admin_panel/vendors/chart.js/dist/utils.js' %}"></script> -->
+
+    <style>
+        .show-tick.bootstrap-select .dropdown-menu .selected span.check-mark{
+            left: 5px;
+        }
+    </style>
+    <script>
+        var worker="survey";
+        
+        var core_json_data = {};
+        var activate_data_sets = [];
+        
+        jQuery(document).ready(function(){
+            init_chart()
+    
+            var json_data = JSON.parse(`{{json_data|safe}}`);
+    
+            // console.log(json_data)
+            jQuery.each(json_data, function(idx, one_data){
+                let ind = one_data.Indicator;
+                delete one_data.Indicator;
+                jQuery("#indicator_select").append("<option>"+ind +"</option>")
+                core_json_data[ind] = one_data;
+            })
+
+            console.log(core_json_data)
+            
+            districts = Object.keys(Object.values(core_json_data)[0]);
+            districts.sort()
+            jQuery.each(districts, function(idx, one_data){
+                if(one_data.indexOf("- Total") != -1)
+                    jQuery("#district_select").append("<option selected>"+one_data +"</option>");
+                else
+                    jQuery("#district_select").append("<option>"+one_data +"</option>");
+            })
+
+            jQuery('#indicator_select').change(function() {
+                indicators = jQuery(this).val();
+                if(indicators != null)
+                {
+                    if(indicators.length < myChart.data.datasets.length)
+                    {
+                        var difference = [];
+                        jQuery.grep(activate_data_sets, function(el) {
+                            if (jQuery.inArray(el, indicators) == -1){
+                                difference = el;
+                            } 
+                        });
+
+                        index_location = jQuery.inArray(difference, activate_data_sets);
+                        activate_data_sets.splice(index_location, 1)
+                        myChart.data.datasets.splice(index_location, 1)
+
+                        myChart.update()
+                    }
+                    else
+                    {
+                        add_data_set(indicators);
+                        prepare_data();
+                    }
+                }
+                else
+                {
+                    myChart.data.datasets=[];
+                    activate_data_sets = [];
+                    myChart.update();
+                }
+            }); 
+
+            jQuery('#district_select').change(function() {
+                districts = jQuery(this).val();
+                if(districts != null)
+                {
+                    if(districts.length < myChart.data.labels.length)
+                    {
+                        var difference = [];
+                        jQuery.grep(myChart.data.labels, function(el) {
+                            if (jQuery.inArray(el, districts) == -1){
+                                difference = el;
+                            } 
+                        });
+                        index_location = jQuery.inArray(difference, myChart.data.labels);
+                        myChart.data.labels.splice(index_location, 1)
+                        jQuery.each(myChart.data.datasets, function(i, data) {
+                            myChart.data.datasets[i].data.splice(index_location, 1)
+                        })
+                        myChart.update()
+                    }
+                    else
+                    {
+                        prepare_data()
+                    }
+                }
+                else
+                {
+                    myChart.data.labels = []
+                    jQuery.each(myChart.data.datasets, function(i, data) {
+                        myChart.data.datasets[i].data = []
+                    })
+                    myChart.update();
+                }
+                
+            });
+
+            jQuery("#indicator_select").selectpicker('val', Object.keys(core_json_data)[0])
+            
+        })
+
+    </script>
+
+    
+{%  include "admin_panel/layout/tabs.html" %}
+{% endblock %}
+
+{% block content %}
+
+<canvas class="animate-bottom" id="survey_chart">
+</canvas>
+
+
+{% endblock %}
+
+{% block script_content %}
+
+<script src="{%static 'admin_panel/vendors/chart.js/dist/Chart.bundle.min.js' %}"></script>
+<script src="{%static 'admin_panel/vendors/chart.js/plugins/js/chartjs-plugin-datalabels.js' %}"></script>
+<script src="{%static 'admin_panel/vendors/chart.js/plugins/js/chartjs-plugin-annotation.js' %}"></script>
+
+<script>
+
+    function add_data_set(indicators)
+    { 
+        jQuery.each(indicators, function(idx, indicator) { 
+            if(jQuery.inArray( indicator, activate_data_sets ) == -1)
+            {
+                activate_data_sets.push(indicator)
+                addDataSet(indicator, "bar",);
+            }
+        })
+        myChart.update();
+
+    }
+
+    function prepare_data()
+    { 
+        districts = jQuery("#district_select").val()
+        jQuery.each(districts, function(idx, district) { 
+            myChart.data.labels[idx] = district;
+            jQuery.each(activate_data_sets, function(indx, indicator) {
+                myChart.data.datasets[indx].data[idx] = (core_json_data[indicator][district]);
+            })
+        })
+        myChart.update();
+
+    }
+
+    function getRandomColor() {
+        var letters = '012345'.split('');
+        var color = '#';        
+        color += letters[Math.round(Math.random() * 5)];
+        letters = '0123456789ABCDEF'.split('');
+        for (var i = 0; i < 5; i++) {
+            color += letters[Math.round(Math.random() * 15)];
+        }
+        return color;
+    } 
+
+    var myChart = false;
+
+    function init_chart(elmnt_id="survey_chart")
+    {
+        is_stack = false;
+        var ctx = document.getElementById(elmnt_id).getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            // data: barChartData,
+            options: {
+                plugins: {
+                    datalabels: {
+                        backgroundColor: function(context) {
+                            return context.dataset.borderColor;
+                        },
+                        formatter: "",
+                        borderRadius: 4,
+                        color: 'white',
+                        font: {
+                            weight: 'bold'
+                        },
+                        display: false,
+                        clamp : true,
+                    },
+
+                },
+                annotation: {
+                    drawTime: 'afterDatasetsDraw',
+                    events: ['click', 'dblclick', 'mouseover', 'mouseout'],
+                    dblClickSpeed: 350, // ms (default)
+                    annotations: [],
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
+                },
+                title: {
+                    display: true,
+                    text: "NFHS4 Survey",
+                    fontFamily : 'Segoe UI'
+                },
+                tooltips: {
+                    mode: 'index',
+                    // intersect: false,
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if( isNaN(tooltipItem.yLabel) )
+                                label += 0;
+                            else
+                                label += tooltipItem.yLabel;
+                            return label;
+                        }
+                    }
+                },
+                responsive: true,
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "",
+                            fontSize: 14,
+                            fontFamily : 'Segoe UI'
+                        },
+                        stacked: is_stack,
+                        ticks: {
+                            autoSkip : false,
+                            callback: function(value, index, values) {
+                                return value;
+                            }
+                        },
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "",
+                            fontSize: 14,
+                            fontFamily : 'Segoe UI'
+                        },
+                        stacked: is_stack,
+                        ticks: {
+                            beginAtZero: true,
+                            // max: 100
+                        }
+                    }]
+                }
+            }
+        });
+    }
+
+
+
+    function addData(chart, x_label, valueset)
+    {
+        chart.data.labels.push(x_label);
+
+        jQuery.each(valueset, function(idx, value){
+            chart.data.dataset[idx].data.push(value)
+        })
+
+    }
+
+
+    //Add dataset attribute to charts
+    function addDataSet(label, chart_type)
+    {
+        var dsColor = getRandomColor();
+        var newDataset = {
+            label: label,
+            type: chart_type,
+            backgroundColor: Color(dsColor).alpha(0.2).rgbString(),
+            borderColor: dsColor,
+            borderWidth: 1,
+            pointHoverRadius: 15,
+            pointHoverBackgroundColor: 'yellow',
+            data: []
+        };
+        myChart.data.datasets.push(newDataset);
+    }
+    
+</script>
+
+{% endblock %}

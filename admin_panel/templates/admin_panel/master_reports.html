@@ -1,0 +1,1799 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+{% block title %}
+  Reports
+{% endblock %}
+
+{% block header_tab %}
+
+{% endblock %}
+{% block content %}
+{% load admin_panel_custom_tags %}
+
+<script>
+
+	var CURRENT_CYCLE = parseInt("{{CURRENT_CYCLE}}");
+</script>
+
+
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="largeModalLabel" aria-hidden="true">
+    <div style="max-width: 90%;;" class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+				<h5 class="modal-title text-capitalize" id="report_name"></h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+            </div>
+            <div class="modal-body">
+
+                <!-- <table id="example" class="table table-striped table-bordered table-hover text-center dataTable no-footer" width="100%">
+                </table> -->
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{%static 'admin_panel/vendors/chosen/chosen.jquery.min.js'%}"></script>
+
+
+
+<link rel="stylesheet" href="{%static 'admin_panel/assets/css/style.css'%}">
+<link rel="stylesheet" href="{%static 'admin_panel/assets/css/data_table_custom.css'%}">
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/datatables.net-bs4/css/dataTables.bootstrap4.min.css'%}">
+
+<script src="{%static 'admin_panel/vendors/momentjs/moment.min.js'%}"></script>
+
+<script src="{%static 'admin_panel/vendors/datatables.net/js/jquery.dataTables.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-bs4/js/dataTables.bootstrap4.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-buttons/js/dataTables.buttons.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js'%}"></script>
+
+
+<!-- <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script> -->
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.2.2/jszip.min.js"></script> -->
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script> -->
+<!-- <script src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.html5.min.js"></script> -->
+
+<script src="{%static 'admin_panel/vendors/datatables.net-buttons-bs4/js/jszip.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-buttons-bs4/js/buttons.html5.js'%}"></script>
+<!-- <script src="{%static 'admin_panel/vendors/datatables.net-buttons-bs4/js/buttons.flash.min.js'%}"></script> -->
+
+
+
+
+<script src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.min.js"></script>
+<script src="https://editor.datatables.net/extensions/Editor/js/dataTables.editor.min.js"></script>
+
+
+
+<script>
+    // Enable Filter values
+    var availbale_filter = ["district_name","block_name","sub_center_name","village_name","name","population","age","caste_code","educational_qualification","seven_days_training","twelve_days_training","four_days_training","eight_days_training","ten_days_training"];
+</script>
+
+<style>
+ 
+
+@import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,200);
+@import url(https://fonts.googleapis.com/css?family=Lato:300,400,700);
+.description {
+	line-height: 40px;
+}
+
+a {
+	color: #b5a4fb;
+	text-decoration: none;
+}
+
+a:hover,
+a:focus {
+	color: #000;
+}
+
+*,
+*:after,
+*:before {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+a,
+button {
+	outline: none;
+}
+
+.clearfix:before,
+.clearfix:after {
+	content: " ";
+	display: table;
+}
+
+.clearfix:after {
+	clear: both;
+}
+
+.header {
+	background: #004050;
+	color: #fff;
+	text-align: center;
+}
+
+
+/* To Navigation Style */
+
+.cctop {
+	background: #056c86;
+	width: 100%;
+	text-transform: uppercase;
+	font-weight: 700;
+	font-size: 0.75em;
+	line-height: 3.2;
+}
+
+.cctop a {
+	display: inline-block;
+	padding: 0 1.5em;
+	text-decoration: none;
+	letter-spacing: 1px;
+}
+
+.cctop span.right {
+	float: right;
+}
+
+.cctop span.right a {
+	display: block;
+	float: left;
+}
+
+
+/* Header Style */
+
+.ccheader {
+	margin: 0 auto;
+	padding: 2em;
+	text-align: center;
+}
+
+.ccheader h1 {
+	font-size: 2.625em;
+	font-weight: 300;
+	line-height: 1.3;
+	margin: 0;
+}
+
+.ccheader h1 span {
+	display: block;
+	padding: 0 0 0.6em 0.1em;
+	font-size: 60%;
+	opacity: 0.7;
+}
+
+
+/* Demo Buttons Style */
+
+.codeconvey-demo {
+	padding-top: 1em;
+	font-size: 0.8em;
+}
+
+.codeconvey-demo a {
+	display: inline-block;
+	margin: 0.5em;
+	padding: 0.7em 1.1em;
+	outline: none;
+	border: 2px solid #fff;
+	color: #fff;
+	text-decoration: none;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: 700;
+}
+
+.codeconvey-demo a:hover,
+.codeconvey-demo a.current-demo,
+.codeconvey-demo a.current-demo:hover {
+	border-color: #333;
+	color: #333;
+}
+
+
+/* Wrapper Style */
+
+.wrapper {
+	margin: 0 auto;
+	padding-left: 12%;
+	padding-right: 12%;
+}
+
+.heading {
+	font-size: 4em;
+	font-weight: 300;
+	margin-bottom: .5em;
+}
+
+.wrap {
+	width: 830px;
+	height: auto;
+	margin: 70px 0px;
+	float: left;
+}
+
+.fa {
+	color: #FFFFFF;
+}
+
+div[class^="btn"] {
+	float: left;
+	margin: 0 10px 10px 0;
+	height: 150px;
+	position: relative;
+	cursor: pointer;
+	transition: all .4s ease;
+	user-drag: element;
+	border: solid 2px transparent;
+	text-align: center;
+	line-height: 150px;
+}
+
+div[class^="btn"]:hover {
+	opacity: 0.7;
+}
+
+div[class^="btn"]:active {
+	transform: scale(.98, .98);
+}
+
+.btn-big {
+	width: 300px;
+}
+
+.btn-small {
+	width: 150px;
+}
+
+.last {
+	margin-right: 0 !important;
+}
+
+.Start {
+	color: white;
+	font: normal 50px 'Yanone Kaffeesatz', sans-serif;
+	margin-bottom: 20px;
+	cursor: pointer;
+	user-select: none;
+	transition: all .3s ease;
+}
+
+.Start:hover {
+	text-shadow: 0 0 4px white;
+}
+
+.space {
+	margin-bottom: 110px;
+}
+
+.label {
+	position: absolute;
+	color: white;
+	font: 500 16px sans-serif;
+	left: 10px;
+	user-select: none;
+}
+
+.bottom {
+	bottom: 5px;
+}
+
+.top {
+	top: 5px;
+}
+
+.red {
+	background: #df0024;
+	animation: flip 6s linear infinite;
+	transform: rotateY(0deg);
+}
+
+.blue {
+	background: #00a9ec;
+}
+
+.orange {
+	background: #ff9000;
+}
+
+.green {
+	background: #0e5d30;
+	animation: flip 6s linear infinite;
+	transform: rotateY(-180deg);
+}
+
+.purple {
+	background: #8b0189;
+}
+
+.red-light {
+	background: #ce4e4e;
+}
+
+.photo {
+	background: url('https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=150&w=300');
+	background-position: -2px -2px;
+}
+
+.gray {
+	background: #5f5f5f;
+	animation: flipY 6s linear infinite;
+	transform: rotateY(-180deg);
+}
+
+.green-bright {
+	background: #78d204;
+}
+
+.blue-nav {
+	background: #25478e;
+}
+
+.redish {
+	background: #fe0000;
+}
+
+.yellow {
+	background: #d0d204;
+}
+
+div[class^="icon"] {
+	width: 45px;
+	height: 45px;
+	margin: 20px auto;
+	background-size: 45px 45px;
+}
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+	cursor: pointer;
+}
+
+::-webkit-scrollbar-track {
+	-webkit-box-shadow: inset 0 0 6px 2px rgba(0, 0, 0, 0.3);
+	background: #007491;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #002f3b;
+	-webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+}
+
+::selection {
+	background: mintcream;
+}
+
+@keyframes flip {
+	0% {
+		transform: rotateX(0deg);
+	}
+	15% {
+		transform: rotateX(360deg);
+	}
+	100% {
+		transform: rotateX(360deg);
+	}
+}
+
+
+@keyframes flipY {
+	0% {
+		transform: rotateY(0deg);
+	}
+	15% {
+		transform: rotateY(360deg);
+	}
+	100% {
+		transform: rotateY(360deg);
+	}
+}
+
+.photo img {
+	top: -4px;
+	left: -4px;
+	position: absolute;
+	opacity: 0;
+	animation: fade 8s ease-in-out infinite 8s;
+	z-index: 0;
+	border: solid 2px transparent;
+	transition: all .3s ease;
+}
+
+.photo img:hover {
+	border: solid 2px mintcream;
+}
+
+@keyframes fade {
+	0% {
+		opacity: 0;
+	}
+	10% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 1;
+	}
+	60% {
+		opacity: 0;
+	}
+}
+</style>
+
+<style>
+body {
+  font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  background-color: #fff;
+}
+
+td.details-control {
+    background: url('https://www.datatables.net/examples/resources/details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+tr.shown td.details-control {
+    background: url('https://www.datatables.net/examples/resources/details_close.png') no-repeat center center;
+}
+
+
+td.details-control1 {
+    background: url('https://www.datatables.net/examples/resources/details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+tr.shown td.details-control1 {
+    background: url('https://www.datatables.net/examples/resources/details_close.png') no-repeat center center;
+}
+
+</style>
+
+
+<div class="card">
+    <div class="card-header">
+        <strong>Committee </strong>Registration & Fund Status 
+    </div>
+    <div class="card-body card-block">
+		<div class="btn-small red-light" frame="committees"> <i class="fa fa-building-o fa-2x"></i> <span class="label bottom">Registration</span> </div>
+		<div class="btn-big blue-nav" frame="six_monthly_expenditure"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">Fund Released BY NHP Six Monthly Expenditure</span> </div>
+		
+		
+		<div class="btn-big orange" frame="fund_status_detailed"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">Fund Status (Detailed)</span> </div>
+
+
+		<div class="btn-big purple" frame="rbf_wise_fund_and_expense"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">Committee wise fund</span> </div>
+
+
+		<div class="btn-big green" frame="district_wise_fund_and_expense"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">District wise fund</span> </div>
+
+
+
+
+		
+		<!-- <div class="btn-big blue-nav" frame="fund_status_report_rbf"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">Fund Status (RBF Wise)</span> </div>
+		<div class="btn-big gray" frame="fund_status_report_ctype"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">Fund Status (Committee Type Wise)</span> </div>
+		<div class="btn-big orange" frame="fund_status_report_rbf_ctype"> <i class="fa fa-rupee fa-2x"></i> <span class="label bottom">Fund Status (Advance View)</span> </div> -->
+	   
+		
+		
+		
+		<!-- <div class="btn-big gray" frame="nhp_report"> <i class="fa fa-sitemap fa-2x"></i> <span class="label bottom">RBF Entry Status</span> </div>
+		<div class="btn-big red" frame="nhp_report_stagewise"> <i class="fa fa-puzzle-piece fa-2x"></i> <span class="label bottom">RBF Cycle Stage Wise Status</span> </div>
+		<div class="btn-small blue" frame="nhp_report_rbfwise"> <i class="fa fa-tags fa-2x"></i> <span class="label bottom">RBF Wise</span> </div> -->
+
+        <!--
+        <div class="btn-big blue"> <i class="fa fa-user fa-2x"></i> <span class="label bottom">User</span> </div>
+        <div class="btn-small green last"> <i class="fa fa-umbrella fa-2x"></i> <span class="label bottom">Application</span> </div>
+        <div class="btn-small red-light"> <i class="fa fa-wrench fa-2x"></i> <span class="label bottom">Setting</span> </div>
+        <div class="btn-big photo"> <img src="https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=150&w=300" class="img-delay-1" /> <span class="label bottom">Photos</span> </div>
+        <div class="btn-big purple"> <i class="fa fa-video-camera fa-2x"></i> <span class="label bottom">Videos</span> </div>
+        <div class="btn-big gray"> <i class="fa fa-music fa-2x"></i> <span class="label bottom">Musics</span> </div>
+        <div class="btn-small green-bright last"> <i class="fa fa-gamepad fa-2x"></i> <span class="label bottom">Games</span> </div>
+        <div class="btn-small blue"> <i class="fa fa-twitter fa-2x"></i> <span class="label bottom">twitter</span> </div> -->
+        <!-- <div class="btn-small red-light"> <i class="fa fa-google-plus fa-2x"></i> <span class="label bottom">Google+</span> </div> -->
+        <!-- <div class="btn-small blue-nav"> <i class="fa fa-facebook fa-2x"></i> <span class="label bottom">Facebook</span> </div> -->
+        <!-- <div class="btn-small redish"> <i class="fa fa-fighter-jet fa-2x"></i> <span class="label bottom">Fighter Jet</span> </div>
+        <div class="btn-big yellow"> <i class="fa fa-lock fa-2x"></i> <span class="label bottom">Security</span> </div> -->
+	</div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <strong>RBF </strong>Entry Status 
+    </div>
+	<div class="card-body card-block">
+		<div class="btn-small green-bright" frame="rbf_expected_vs_actual_counts"> <i class="fa fa-building-o fa-2x"></i> <span class="label bottom">Expected vs Actual RBF Completde</span> </div>
+
+		<div class="btn-big gray" frame="nhp_report"> <i class="fa fa-sitemap fa-2x"></i> <span class="label bottom">RBF Entry Status (Consolidated Committee Wise)</span> </div>
+		<div class="btn-big red" frame="nhp_report_stagewise"> <i class="fa fa-puzzle-piece fa-2x"></i> <span class="label bottom">RBF Entry Status (Cycle & Stage Wise)</span> </div>
+		<div class="btn-big blue" frame="nhp_report_rbfwise"> <i class="fa fa-tags fa-2x"></i> <span class="label bottom">RBF Entry Status (Committee Type & Cycle Wise)</span> </div>
+
+
+		<div class="btn-small red-light" frame="rbf_stage_complition_counts"> <i class="fa fa-building-o fa-2x"></i> <span class="label bottom">Committee wise & RBF wise completion</span> </div>
+
+		
+		
+		
+		
+		<!-- <div class="btn-small red-light" frame="rbf_stage_complition_rbf_start_date"> <i class="fa fa-building-o fa-2x"></i> <span class="label bottom">Committee wise RBF start date</span> </div> -->
+
+		
+	</div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <strong>Target </strong>Indicator Report 
+    </div>
+	<div class="card-body card-block">
+<!-- 
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_0_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 0 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_1_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 1 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_2_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 2 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_3_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 3 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_4_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 4 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_5_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 5 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_6_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 6 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_7_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 7 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_8_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 8 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_9_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 9 Consolidated</span> </div>
+		<div class="btn-small blue-nav" frame="full_dvr_rbf_10_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">RBF 10 Consolidated</span> </div> -->
+
+
+
+
+
+
+
+
+
+		<div class="btn-small purple" frame="full_dvr_vhc_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">VHC Consolidated</span> </div>
+		<div class="btn-big orange" frame="full_dvr_hscmc_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">HSCMC Consolidated</span> </div>
+		<div class="btn-big green" frame="full_dvr_hcmc_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">HCMC Consolidated</span> </div>
+
+
+		<div class="btn-small purple" frame="full_dvr_vhc_committee_wise_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">VHC Committees Consolidated</span> </div>
+		<div class="btn-big orange" frame="full_dvr_hscmc_committee_wise_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">HSCMC Committees Consolidated</span> </div>
+		<div class="btn-big green" frame="full_dvr_hcmc_committee_wise_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">HCMC Committees Consolidated</span> </div>
+		
+		
+		
+		<!-- <div class="btn-big red-light" frame="full_dvr_all_committee_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">All Committees Consolidated</span> </div> -->
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-header">
+        <strong>PDO </strong>Indicator Report 
+    </div>
+	<div class="card-body card-block">
+		<div class="btn-big red" frame="pdo_rbf_consolidated"> <i class="fa fa-crosshairs fa-2x"></i> <span class="label bottom">PDO RBF Wise Consolidated</span> </div>
+		<div class="btn-big gray" frame="pdo_ctype_consolidated"> <i class="fa fa-crosshairs fa-2x"></i> <span class="label bottom">PDO Committee Type Wise Consolidated</span> </div>
+		<div class="btn-big blue-nav" frame="pdo_ctype_ctype_consolidated"> <i class="fa fa-crosshairs fa-2x"></i> <span class="label bottom">PDO Committee Type & RBF Consolidated</span> </div>		
+		
+		<!-- <div class="btn-big orange" frame="full_dvr_hscmc_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">HSCMC Consolidated</span> </div>
+		<div class="btn-small purple" frame="full_dvr_vhc_consolidated"> <i class="fa fa-tasks fa-2x"></i> <span class="label bottom">VHC Consolidated</span> </div> -->
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block script_content %}
+<script>
+    // jQuery(document).ready(function(){
+    //     jQuery(".btn-big, .btn-small").click(function(){
+    //         jQuery("#reportModal").modal('toggle');
+    //     })
+    // })
+
+var childEditors = {};  // Globally track created chid editors
+
+
+function consolidated_pdo_dict_generator(group_by)
+{
+	columns = {}
+
+	jQuery.each(group_by, function(idx, gb){
+		columns[gb] = gb.replace(/_/g," ")
+	})
+
+	columns = jQuery.extend(columns, {
+										"sum_of_total_number_of_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_second_time_in_last_six_months" :"total_number_of_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_second_time_in_last_six_months".replace(/_/g," "),
+										"sum_of_total_number_of_female_children_under_age_of_one_year_registred_for_immunisation" :"total_number_of_female_children_under_age_of_one_year_registred_for_immunisation".replace(/_/g," "),
+										"sum_of_total_number_of_children_under_age_of_one_year_registred_for_immunisation" :"total_number_of_children_under_age_of_one_year_registred_for_immunisation".replace(/_/g," "),
+										"sum_of_total_number_of_female_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_for_second_time_in_last_six_months" :"total_number_of_female_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_for_second_time_in_last_six_months".replace(/_/g," "),
+										"sum_of_children_aged_between_9_11_months_registred_for_immunisation" :"children_aged_between_9_11_months_registred_for_immunisation".replace(/_/g," "),
+										"sum_of_female_children_aged_between_9_11_months_registred_for_immunisation" :"female_children_aged_between_9_11_months_registred_for_immunisation".replace(/_/g," "),
+										"sum_of_children_aged_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines" :"children_aged_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines".replace(/_/g," "),
+										"sum_of_female_children_aged_between_9_11_months_registred_for_immunisation_have_reveived_all_the_recommended_vaccines" :"female_children_aged_between_9_11_months_registred_for_immunisation_have_reveived_all_the_recommended_vaccines".replace(/_/g," "),
+										"sum_of_total_opd_per_month" :"total_opd_per_month".replace(/_/g," "),
+										"sum_of_total_ipd_per_month" :"total_ipd_per_month".replace(/_/g," "),
+										"sum_of_among_the_total_number_of_the_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered" :"among_the_total_number_of_the_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered".replace(/_/g," "),
+										"sum_of_among_the_total_number_of_the_female_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered" :"among_the_total_number_of_the_female_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered".replace(/_/g," "),
+										"sum_of_if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_of_female_child_in_this_row_under_the_month_that_the_child_s_birth_was_registered" :"if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_of_female_child_in_this_row_under_the_month_that_the_child_s_birth_was_registered".replace(/_/g," "),
+										"sum_of_if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_in_this_row_under_the_month_that_the_child_s_birth_was_registered" :"if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_in_this_row_under_the_month_that_the_child_s_birth_was_registered".replace(/_/g," "),
+										"sum_of_electricity_supply_improved_by_the_project" :"electricity_supply_improved_by_the_project".replace(/_/g," "),
+										"sum_of_children_between_9_11_months_registred_for_immunisation" :"children_between_9_11_months_registred_for_immunisation".replace(/_/g," "),
+										"sum_of_female_children_with_age_between_9_11_months_registered_for_immunization" :"female_children_with_age_between_9_11_months_registered_for_immunization".replace(/_/g," "),
+										"sum_of_children_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines" :"children_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines".replace(/_/g," "),
+										"sum_of_female_children_between_9_11_months_registered_for_immunization_have_received_all_the_recommended_vaccines" :"female_children_between_9_11_months_registered_for_immunization_have_received_all_the_recommended_vaccines".replace(/_/g," ")
+									});
+
+	
+
+	return {	
+			frame:"PDO",
+			data : 
+			
+			{head:[
+					"total_number_of_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_second_time_in_last_six_months",
+					"total_number_of_female_children_under_age_of_one_year_registred_for_immunisation",
+					"total_number_of_children_under_age_of_one_year_registred_for_immunisation",
+					"total_number_of_female_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_for_second_time_in_last_six_months",
+					"children_aged_between_9_11_months_registred_for_immunisation",
+					"female_children_aged_between_9_11_months_registred_for_immunisation",
+					"children_aged_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines",
+					"female_children_aged_between_9_11_months_registred_for_immunisation_have_reveived_all_the_recommended_vaccines",
+					"total_opd_per_month",
+					"total_ipd_per_month",
+					"among_the_total_number_of_the_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered",
+					"among_the_total_number_of_the_female_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered",
+					"if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_of_female_child_in_this_row_under_the_month_that_the_child_s_birth_was_registered",
+					"if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_in_this_row_under_the_month_that_the_child_s_birth_was_registered",
+					"electricity_supply_improved_by_the_project",
+					"children_between_9_11_months_registred_for_immunisation",
+					"female_children_with_age_between_9_11_months_registered_for_immunization",
+					"children_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines",
+					"female_children_between_9_11_months_registered_for_immunization_have_received_all_the_recommended_vaccines"
+					],
+			
+			data_type:['sum','sum','sum','sum','sum','sum','sum','sum','sum','sum', 'sum','sum','sum','sum','sum','sum','sum','sum','sum'], 
+
+			group_by:group_by, report_data:true, filters:JSON.stringify([])}, 
+			columns : columns,
+			detail_table_columns : [
+									"name_of_committee",
+									"ctype",
+									"district",
+									"block",
+									"community_health_center",
+									"primary_health_center",
+									"sub_center",
+									"village",
+									"total_number_of_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_second_time_in_last_six_months",
+									"total_number_of_female_children_under_age_of_one_year_registred_for_immunisation",
+									"total_number_of_children_under_age_of_one_year_registred_for_immunisation",
+									"total_number_of_female_children_under_age_of_one_year_registred_for_immunisation_and_growth_recorded_for_second_time_in_last_six_months",
+									"children_aged_between_9_11_months_registred_for_immunisation",
+									"female_children_aged_between_9_11_months_registred_for_immunisation",
+									"children_aged_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines",
+									"female_children_aged_between_9_11_months_registred_for_immunisation_have_reveived_all_the_recommended_vaccines",
+									"total_opd_per_month",
+									"total_ipd_per_month",
+									"among_the_total_number_of_the_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered",
+									"among_the_total_number_of_the_female_live_births_in_the_month_in_the_catchment_areas_of_the_sc_the_total_number_of_children_whose_birth_was_registered",
+									"if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_of_female_child_in_this_row_under_the_month_that_the_child_s_birth_was_registered",
+									"if_birth_registration_was_not_done_in_the_same_month_please_enter_birth_registration_information_in_this_row_under_the_month_that_the_child_s_birth_was_registered",
+									"electricity_supply_improved_by_the_project",
+									"children_between_9_11_months_registred_for_immunisation",
+									"female_children_with_age_between_9_11_months_registered_for_immunization",
+									"children_between_9_11_months_registred_for_immunisation_have_received_all_the_recommended_vaccines",
+									"female_children_between_9_11_months_registered_for_immunization_have_received_all_the_recommended_vaccines"
+									],
+			}
+}
+
+
+function consolidated_dict_generator(group_by, filters, frame_name)
+{
+
+	default_columns_title =  {
+								"rbf_cycle" : "RBF Cycle",
+								size_of_hash: "No. of Committees",
+								"ctype":"Committee Type",
+								"invalid_entry": "Is Valid Entry",
+								"completed_indicator" : "Completed Indicator",
+								"total_indicator" : "Total Indicator"
+							};
+
+	detail_table_columns = [
+							"DISTRICT",
+							"Name of Committee",
+							{title: "Committe Type", data: "ctype"}
+							]
+	
+	head_to_operation = {
+							'hash' : 'size',
+							'indicator_1' : 'mean',
+							'indicator_2' : 'mean',
+							'indicator_3' : 'mean',
+							'indicator_4' : 'mean',
+							'indicator_5' : 'mean',
+							'indicator_6' : 'mean',
+							'indicator_7' : 'mean',
+							'indicator_8' : 'mean',
+						};
+	if (jQuery.inArray("Name of Committee", group_by) != -1)
+	{
+		delete head_to_operation["hash"]
+	}
+	// else
+	// {
+		if(frame_name.indexOf("VHC") != -1)
+		{	
+			indicator_columns_title = {
+										"mean_of_indicator_1": "I1: Conducted 3 BCC",
+										"mean_of_indicator_2": "I2: Complete ASHA Kit",
+										"mean_of_indicator_3": "I3: Conducted monthly VHND",
+										"mean_of_indicator_4": "I4: Birth Registered",
+										"mean_of_indicator_5": "I5: MCP Card",
+										"mean_of_indicator_6": "I6: 4 ANC",
+										// "mean_of_indicator_7": "Percentage of committees that met the target for indicator #7(A):      Among those women who have delivered in last six months, how many have received JSY benefits",
+										"mean_of_indicator_7": "I7: JSY Benefit",
+										"mean_of_indicator_8": "I8: Birth Weighed by ASHA",
+									}
+
+			jQuery.each(indicator_columns_title, function(key, val){
+				detail_table_columns.push({title: val, data: key.replace("mean_of_","")})
+			})
+
+
+			detail_table_columns = jQuery.merge(detail_table_columns, ["no_of_behavioural_change_communication_campaigns_on_health_nutrition_sanitation_or_related_issues_total_as_per_indicator_performance_reports_submitted",
+																		"total_score",
+																		"no_of_vhnds_total_as_per_indicator_performance_reports_submitted",
+																		"total_number_of_children_whose_birth_is_registered_total_as_per_indicator_performance_reports_submitted",
+																		"women_who_had_registered_their_pregnancy_and_had_received_a_mcp_card_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_who_had_received_at_least_4_ancs_from_any_provider_during_their_pregnancy_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_who_have_received_jsy_benefits_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_whose_documents_have_been_submitted_for_jsy_by_the_anm_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_who_had_received_a_visit_from_the_asha_in_the_first_24_hours_of_their_birth_and_had_their_new_born_s_weight_taken_by_her_total_as_per_indicator_performance_reports_submitted",
+																		"total_home_deliveries",
+																		"total_deliveries",
+																		"total_live_births",])
+		}
+		else if(frame_name.indexOf("HSCMC") != -1)
+		{
+			indicator_columns_title = {
+										"mean_of_indicator_1": "I1: Three BCC",
+										"mean_of_indicator_2": "I2: Medicines, Equipments & Sanitation",
+										"mean_of_indicator_3": "I3: VHND Conducted",
+										"mean_of_indicator_4": "I4: Birth Registered",
+										"mean_of_indicator_5": "I5: BP Checked",
+										"mean_of_indicator_6": "I6: Four ANC",
+										// "mean_of_indicator_7": "Percentage of committees that met the target for indicator #7(A):      Among those women who have delivered in last six months, how many have received JSY benefits",
+										"mean_of_indicator_7": "I7: JSY Benefits",
+										"mean_of_indicator_8": "I8: Full immunization (9M-11M)",
+									}
+
+			jQuery.each(indicator_columns_title, function(key, val){
+				detail_table_columns.push({title: val, data: key.replace("mean_of_","")})
+			})
+
+
+			detail_table_columns = jQuery.merge(detail_table_columns, ["no_of_behavioural_change_communication_campaigns_on_health_nutrition_sanitation_or_related_issues_total_as_per_indicator_performance_reports_submitted",                            
+											"total_score",    
+											"anm_attendance_at_vhnds_total_as_per_indicator_performance_reports_submitted",
+											"total_number_of_children_whose_birth_is_registered_total_as_per_indicator_performance_reports_submitted",
+											"number_of_women_who_had_received_at_least_one_bp_blood_pressure_test_from_the_anm_as_part_of_their_anc_check_up_total_as_per_indicator_performance_reports_submitted",
+											"the_number_of_women_who_had_received_at_least_4_ancs_from_any_provider_during_their_pregnancy_total_as_per_indicator_performance_reports_submitted",
+											"the_number_of_women_who_have_received_jsy_benefits_total_as_per_indicator_performance_reports_submitted",
+											"the_number_of_women_for_whom_the_jsy_documents_have_been_submitted_total_as_per_indicator_performance_reports_submitted",
+											"among_the_children_aged_9_to_11_months_in_the_review_period_in_the_catchment_area_of_the_facility_how_many_are_fully_vaccinated_total_as_per_indicator_performance_reports_submitted",
+											"total_home_deliveries",
+											"total_deliveries",
+											"total_live_births",])
+		}
+
+		else if(frame_name.indexOf("HCMC") != -1)
+		{
+			delete head_to_operation["indicator_6"];
+			delete head_to_operation["indicator_7"];
+			delete head_to_operation["indicator_8"];
+			indicator_columns_title = {
+										"mean_of_indicator_1": "I1: Medicines, Equipment & Sanitation",
+										"mean_of_indicator_2": "I2: HIV Test",
+										"mean_of_indicator_3": "I3: Four ANC",
+										// "mean_of_indicator_4": "Percentage of committees that met the target for indicator #4(a): Among those women who delivered in the PHC/CHC in the last six months, how many have received JSY benefits",
+										"mean_of_indicator_4": "I4: JSY Benefits",
+										"mean_of_indicator_5": "I5: Weighed at birth",
+									}
+
+			jQuery.each(indicator_columns_title, function(key, val){
+				detail_table_columns.push({title: val, data: key.replace("mean_of_","")})
+			})
+
+
+			detail_table_columns = jQuery.merge(detail_table_columns, ["total_score",
+																		"women_who_receive_anc_who_receive_an_hiv_test_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_who_had_received_at_least_4_ancs_from_any_provider_during_their_pregnancy_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_who_have_received_jsy_benefits_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_women_whose_documents_have_been_submitted_for_jsy_by_the_anm_total_as_per_indicator_performance_reports_submitted",
+																		"the_number_of_children_who_were_weighed_at_birth_total_as_per_indicator_performance_reports_submitted",
+																		"total_home_deliveries",
+																		"total_deliveries",
+																		"total_live_births",])
+			
+		}
+
+
+		default_columns_title = jQuery.extend(default_columns_title,indicator_columns_title)
+	// }
+
+	columns = {};
+	jQuery.each(group_by, function(idx, gb){
+		columns[gb] = gb.replace(/_/g, ' ');
+		columns[gb] = (default_columns_title[gb]) ? default_columns_title[gb] : gb;
+	})
+
+	jQuery.each(head_to_operation, function(key, val){
+		json_reponse_key = val+"_of_"+key;
+		columns[json_reponse_key] = (default_columns_title[json_reponse_key]) ? default_columns_title[json_reponse_key] : key.replace(/_/g, ' ');
+	})
+	
+	return {frame:frame_name,
+					data : {head: Object.keys(head_to_operation),
+							data_type: Object.values(head_to_operation) , 
+							group_by:group_by, 
+							report_data:true, filters:JSON.stringify(filters)
+							}, 
+					columns : columns,
+
+					
+					detail_table_columns : detail_table_columns,
+					}
+}
+
+
+
+function rbf_stage_complition_counts_conf_generate()
+{
+
+	dynamic_heads = {}
+
+	for(i=0; i<= CURRENT_CYCLE; i++)
+	{
+		dynamic_heads["RBF "+ i +" Completed"] = "RBF "+ i +" Completed"
+	}
+
+	return {		no_drill : true,
+					frame:"rbf_stage_complition_counts",
+					data : {head: [
+								'DISTRICT',
+								'Name of Committee',
+								'ctype']
+								, 
+					data_type:[], 
+					group_by:[	
+						"Name of Committee"
+							], 
+					report_data:true, 
+					filters:JSON.stringify([])}, 
+
+					
+					columns : jQuery.extend({ 
+						'DISTRICT' : 'District',
+						'ctype' : 'Type of HF',
+						'Name of Committee' : 'Name of HF/ Centres',
+					}, dynamic_heads),
+
+					advanceColumns : [	
+									],
+					
+					detail_table_columns : [
+											
+											],
+	}
+
+}
+
+
+function rbf_stage_complition_counts_with_rbf_start_date_conf_generate()
+{
+	return {		no_drill : true,
+					frame:"rbf_Manager",
+					data : {head:[
+								'DISTRICT',
+								'ctype',
+								'Name of Committee',
+								'rbf_0',
+								'rbf_1',
+								'rbf_2',
+								'rbf_3',
+								'rbf_4',
+								'rbf_5',
+								], 
+					data_type:[], 
+					group_by:[	
+						"Name of Committee"
+							], 
+					report_data:true, 
+					filters:JSON.stringify([])}, 
+
+					
+					columns : { 
+						'DISTRICT' : 'District',
+						'ctype' : 'Type of HF',
+						'Name of Committee' : 'Name of HF/ Centres',
+						'rbf_0' : 'RBF 0',
+						'rbf_1' : 'RBF 1',
+						'rbf_2' : 'RBF 2',
+						'rbf_3' : 'RBF 3',
+						'rbf_4' : 'RBF 4',
+						'rbf_5' : 'RBF 5',
+					},
+
+					columns_defs : [
+						{
+						"render": function (data, type, row) {
+									return (moment(data).format('DD-MMM-YYYY'))
+									
+								},
+								"targets": [3,4,5,6,7,8] ,
+						},      
+					],
+
+					advanceColumns : [	
+									],
+					
+					detail_table_columns : [
+											
+											],
+	}
+
+}
+
+
+
+function district_wise_fund_and_expense_conf_generate()
+{
+	return {		no_drill : true,
+					frame:"district_wise_fund_and_expense",
+					data : {head:[
+								'DISTRICT',
+								'HCMC Fund Released',
+								'HSCMC Fund Released',
+								'VHC Fund Released',
+								'HCMC Utilization',
+								'HSCMC Utilization',
+								'VHC Utilization',], 
+					data_type:[], 
+					group_by:[	
+							'DISTRICT'
+							], 
+					report_data:true, 
+					filters:JSON.stringify([])}, 
+
+					
+					columns : { 
+						'DISTRICT' : 'District',
+						'HCMC Fund Released': 'HCMC Fund Released',
+						'HSCMC Fund Released': 'HSCMC Fund Released',
+						'VHC Fund Released': 'VHC Fund Released',
+						'HCMC Utilization': 'HCMC Utilization',
+						'HSCMC Utilization': 'HSCMC Utilization',
+						'VHC Utilization': 'VHC Utilization',
+					},
+
+					advanceColumns : [	
+
+										{ data:  null, title:"Total Fund Released", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = ((
+													data["HCMC Fund Released"] + 
+													data["HSCMC Fund Released"] +
+													data["VHC Fund Released"] 
+												));
+												return (result.toFixed(2));
+											}
+										},
+
+
+										{ data:  null, title:"Total Utilization", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = ((
+													data["HCMC Utilization"] + 
+													data["HSCMC Utilization"] +
+													data["VHC Utilization"] 
+												));
+												return (result.toFixed(2));
+											}
+										}
+									
+
+									],
+					
+					detail_table_columns : [
+											
+											],
+	}
+
+}
+
+
+
+function rbf_wise_fund_and_expense_conf_generate()
+{ 
+	dynamic_heads = {}
+
+	for(i=0; i<= CURRENT_CYCLE; i++)
+	{
+		dynamic_heads["RBF "+ i +" Fund Released"] = "RBF "+ i +" Fund Released"
+	}
+
+	for(i=0; i<= CURRENT_CYCLE; i++)
+	{
+		dynamic_heads["RBF "+ i +" Utilization"] = "RBF "+ i +" Utilization"
+	}
+
+	return {		no_drill : true,
+					frame:"rbf_wise_fund_and_expense",
+					data : {head:['Name of Committee',
+								'DISTRICT',
+								'ctype',
+								'current_rbf'], 
+					data_type:[], 
+					group_by:[	
+							'Name of Committee'
+							], 
+					report_data:true, 
+					filters:JSON.stringify([])}, 
+
+					columns : jQuery.extend({ 
+						'DISTRICT' : 'District',
+						'ctype' : 'Type of HF',
+						'Name of Committee' : 'Name of HF/ Centres',
+						'current_rbf' : 'Current Cycle',
+					},dynamic_heads) ,
+
+					advanceColumns : [	
+										{ data:  null, title:"Total Fund Released", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = 0;
+												for(i=0; i<= CURRENT_CYCLE; i++)
+												{
+													result += data["RBF "+ i +" Fund Released"]
+												}
+												return (result.toFixed(2));
+											}
+										},
+
+
+										{ data:  null, title:"Total Utilization", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = 0;
+												for(i=0; i<= CURRENT_CYCLE; i++)
+												{
+													result += data["RBF "+ i +" Utilization"]
+												}
+												return (result.toFixed(2));
+											}
+										}
+									
+
+									],
+					
+					detail_table_columns : [
+											
+											],
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function fund_status_report_conf_generate()
+{ 
+	return {		no_drill : true,
+					frame:"fund_status_report",
+					data : {head:['RBF Amount', 'Bank charges', 'Interest Credited from Bank - Amount', 'Interest Credited from Bank Q2 - Amount', 'Previous balance - Amount', 'Community Contribution Amount', 'Total Fund - Amount', 'Six monthly Expenditure (Rs)', 'Balance in Total', 'Quarter 1 Expenditure', 'Quarter 2 Expenditure' ], 
+					data_type:['sum', 'sum', 'sum','sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum'], 
+					group_by:[	"Name of Committee",
+								"ctype",
+								'DISTRICT',
+								"RBF Cycle",
+								"Previous balance - Amount",
+								"RBF Amount",
+								"Interest Credited from Bank - Amount",
+								'Interest Credited from Bank Q2 - Amount',
+								"Community Contribution Amount",
+								"Total Fund - Amount",
+								"Approved Budget",
+								"Quarter 1 Expenditure",
+								"Quarter 2 Expenditure",
+								"Six monthly Expenditure (Rs)",
+							], 
+					report_data:true, 
+					filters:JSON.stringify([])}, 
+
+					
+					columns : { 
+						// "Name of Committee" : "Name of Committee",
+						// "ctype" : "Committee Type",
+						// "RBF Cycle" : "RBF Cycle",
+						// "Previous balance - Amount" : "Previous balance - Amount",
+						// "RBF Amount" : "Fund received from NHP",
+						// "Interest Credited from Bank - Amount" : "Interest Credited from Bank - Amount",
+						// "Community Contribution Amount" : "Community Contribution Amount",
+						// "Total Fund - Amount" : "Total Fund  Available at the start of the cycle",
+						// "Approved Budget" : "Action Plan Budget",
+						// "Quarter 1 Expenditure" : "Quarter 1 Expenditure",
+						// "Quarter 2 Expenditure" : "Quarter 2 Expenditure",
+						// "Six monthly Expenditure (Rs)" : "Six monthly Expenditure (Rs)",
+					},
+
+					advanceColumns : [	
+										{ data:  null, title:"DISTRICT", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["DISTRICT"]);
+												return (result);
+											},
+										},
+						
+										{ data:  null, title:"Name of Committee", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Name of Committee"]);
+												return (result);
+											},
+										},
+
+										{ data:  null, title:"Committee Type", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["ctype"]);
+												return (result);
+											},
+										},
+
+										{ data:  null, title:"RBF Cycle", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["RBF Cycle"]);
+												return (result);
+											},
+										},
+
+										{ data:  null, title:"Previous balance - Amount", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Previous balance - Amount"]);
+												return (result);
+											},
+										},
+
+
+										{ data:  null, title:"Fund received from NHP", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["RBF Amount"]);
+												return (result);
+											},
+										},
+
+
+										{ data:  null, title:"Interest Credited from Bank - Amount", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Interest Credited from Bank - Amount"]);
+												return (result);
+											},
+										},
+
+
+										{ data:  null, title:"Interest Credited from Bank Q2 - Amount", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data['Interest Credited from Bank Q2 - Amount']);
+												return (result);
+											},
+										},
+
+
+
+
+										
+
+
+										{ data:  null, title:"Community Contribution Amount", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Community Contribution Amount"]);
+												return (result);
+											},
+										},
+										
+
+										{ data:  null, title:"Total Fund  Available at the start of the cycle", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = ((data["Previous balance - Amount"] + data["RBF Amount"] + data["Interest Credited from Bank - Amount"] + data['Interest Credited from Bank Q2 - Amount'] + data["Community Contribution Amount"] ));
+												return (result.toFixed(2));
+											}
+										}
+										,
+
+
+										{ data:  null, title:"Action Plan Budget", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Approved Budget"]);
+												return (result);
+											},
+										},
+
+
+
+										{ data:  null, title:"Quarter 1 Expenditure", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Quarter 1 Expenditure"]);
+												return (result);
+											},
+										},
+
+
+
+										{ data:  null, title:"Quarter 2 Expenditure", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = (data["Quarter 2 Expenditure"]);
+												return (result);
+											},
+										},
+						
+					
+										{ data:  null, title:"Six monthly Expenditure", "sClass": "binCentered", render: function (data, type, row)
+											{	
+												let result = ((data["Quarter 1 Expenditure"] + data["Quarter 2 Expenditure"] ));
+												return (result.toFixed(2));
+											},
+										},
+
+
+										
+								
+									],
+					// columns_defs : [
+					// 	{
+					// 	"render": function (data, type, row) {
+					// 				return (data).toFixed(2);
+									
+					// 			},
+					// 			"targets": [2,3,4,5,6,7,8,9,10,11] ,
+					// 	},      
+					// ],
+					detail_table_columns : [
+											"Name of Committee",
+											"ctype",
+											"RBF Cycle",
+											"Previous balance - Amount",
+											"RBF Amount",
+											"Interest Credited from Bank - Amount",
+											"Community Contribution Amount",
+											"Total Fund - Amount",
+											"Approved Budget",
+											"Quarter 1 Expenditure",
+											"Quarter 2 Expenditure",
+											"Six monthly Expenditure (Rs)",
+											"PRIMARY HEALTH CENTER",
+											"STATE",
+											"DISTRICT",
+											"BLOCK",
+											"COMMUNITY HEALTH CENTER",
+											"District Health Unit",
+											"VILLAGE",
+											"SUB CENTER",
+											],
+					}
+}
+
+var FRAME_configuration = {
+	committees 	: {	frame:"committees",
+					data : {head:['hash'], data_type:['size'], group_by:['ctype',], report_data:true, filters:JSON.stringify([])}, 
+					columns : {ctype:"Committee Type" ,size_of_hash: "No. of Committees"},
+					detail_table_columns : ["Name of Committee","ctype","Date of MOU","OTG Amount","OTG Date","STATE","DISTRICT","BLOCK","COMMUNITY HEALTH CENTER","PRIMARY HEALTH CENTER","SUB CENTER","VILLAGE","Bank Name","IFSC Code","Bank A/C Number","Population Covered","Date of Training","mou_year","mou_month","mou_day"],
+					},
+
+	nhp_report	: {	frame:"nhp_report",
+					data : {head:['hash'], data_type:['size'], group_by:['ctype', 'RBF State'], report_data:true, filters:JSON.stringify([])}, 
+					columns : {ctype:"Committee Type" , 'RBF State':"RBF State" ,size_of_hash: "No. of Committees"},
+					detail_table_columns : ["DISTRICT", "Name of Committee","ctype", "RBF Cycle","Action_Plan","Fund_Status","IPR_-_1","DVR_-_1","IPR_-_2","DVR_-_2","Six_Monthly_Expenditure","program_status","RBF State"],
+					},
+
+	nhp_report_stagewise	: {	frame:"nhp_report",
+							data : {head:['hash'], data_type:['size'], group_by:['ctype', 'RBF State', 'RBF Cycle', 'Action_Plan_status', 'Fund_Status_status', 'IPR_-_1_status', 'DVR_-_1_status', 'IPR_-_2_status', 'DVR_-_2_status', 'Six_Monthly_Expenditure_status'	], report_data:true, filters:JSON.stringify([])}, 
+							columns : {ctype:"Committee Type" ,'RBF Cycle':"RBF Cycle" , 'RBF State':"RBF State" , 
+										Action_Plan_status: "Action_Plan",
+										Fund_Status_status: "Fund_Status",
+										'IPR_-_1_status': "IPR_-_1",
+										'DVR_-_1_status': "DVR_-_1",
+
+										'IPR_-_2_status': "IPR_-_2",
+										'DVR_-_2_status': "DVR_-_2",
+										Six_Monthly_Expenditure_status: "Six_Monthly_Expenditure", 
+										size_of_hash: "No. of Committees"},
+							detail_table_columns : ["DISTRICT", "Name of Committee","ctype", "RBF Cycle","Action_Plan","Fund_Status","IPR_-_1","DVR_-_1","IPR_-_2","DVR_-_2","Six_Monthly_Expenditure","program_status","RBF State"],
+							},
+
+	nhp_report_rbfwise	: {	frame:"nhp_report",
+					data : {head:['hash'], data_type:['size'], group_by:['ctype', 'RBF State', 'RBF Cycle'], report_data:true, filters:JSON.stringify([])}, 
+					columns : {ctype:"Committee Type" , 'RBF Cycle':'RBF Cycle', 'RBF State':"RBF State" , size_of_hash: "No. of Committees"},
+					detail_table_columns : ["DISTRICT", "Name of Committee","ctype", "RBF Cycle","Action_Plan","Fund_Status","IPR_-_1","DVR_-_1","IPR_-_2","DVR_-_2","Six_Monthly_Expenditure","program_status","RBF State"],
+					},
+
+	rbf_stage_complition_counts : rbf_stage_complition_counts_conf_generate(),
+
+	rbf_expected_vs_actual_counts : {	frame:"rbf_Manager",
+					data : {head:['DISTRICT', 'BLOCK'], data_type:[], group_by:['Name of Committee'], report_data:true, filters:JSON.stringify([])}, 
+					columns : { 
+						'Name of Committee':'Name of Committee', 
+						DISTRICT:'DISTRICT',
+						ctype:"Committee Type",
+						'rbf_0':"RBF 0",
+						'completed_rbf' : 'Actual RBF Completed',
+						'ongoing_rbf' : 'Actual RBF Ongoing',
+						'expected_rbf_complete': "Expected No. of Cycle completed",
+						'expected_rbf_registered': "Expected No. of Cycle Registered",
+						// 'actual_rbf_complete':"Actual No. of Cycle completed",
+						},
+					// advanceColumns : [{ data:  null, title:"Total Funds Remaining", "sClass": "binCentered", render: function (data, type, row)
+					// 						{	
+					// 							let result = (data["sum_of_Approved Budget"] - data["sum_of_Six monthly Expenditure (Rs)"]);
+					// 							return (result);
+					// 						}
+					// 					}],
+					columns_defs : [
+						{
+						"render": function (data, type, row) {
+									return moment(data).format('DD-MMM-YYYY');
+									
+								},
+								"targets": [4] ,
+						},      
+					],
+					
+					detail_table_columns : [
+											"Name of Committee",
+											"ctype",
+											"current_rbf",
+											"rbf_0",
+											"rbf_1",
+											"rbf_2",
+											"rbf_3",
+											"rbf_4",
+											"rbf_5",
+											"rbf_6",
+											"rbf_7",
+											"rbf_8",
+											"rbf_9",
+											"rbf_10"
+											],
+					},
+
+	rbf_stage_complition_rbf_start_date : rbf_stage_complition_counts_with_rbf_start_date_conf_generate(),
+
+	six_monthly_expenditure	: {	frame:"fund_status_report",
+					data : {head:['event_status', 'RBF Amount', 'Six monthly Expenditure (Rs)'], data_type:['count', 'sum', 'sum'], group_by:['DISTRICT', 'ctype', 'Name of Committee'], report_data:true, filters:JSON.stringify([])}, 
+					columns : { 
+						DISTRICT:'DISTRICT',
+						ctype:"Committee Type",
+						'Name of Committee':'Name of Committee', 
+						'count_of_event_status': "Current RBF",
+						'sum_of_RBF Amount':"Fund received from NHP" ,
+						'sum_of_Six monthly Expenditure (Rs)':"Six monthly Expenditure"},
+					// advanceColumns : [{ data:  null, title:"Total Funds Remaining", "sClass": "binCentered", render: function (data, type, row)
+					// 						{	
+					// 							let result = (data["sum_of_Approved Budget"] - data["sum_of_Six monthly Expenditure (Rs)"]);
+					// 							return (result);
+					// 						}
+					// 					}],
+					
+					detail_table_columns : ["RBF Cycle",
+											"Previous balance - Amount",
+											"RBF Amount",
+											"Interest Credited from Bank - Amount",
+											"Community Contribution Amount",
+											"Total Fund - Amount",
+											"Approved Budget",
+											"Quarter 1 Expenditure",
+											"Quarter 2 Expenditure",
+											"Six monthly Expenditure (Rs)"
+											],
+					},
+
+	fund_status_detailed : fund_status_report_conf_generate(),
+
+	fund_status_report_rbf	: {	frame:"fund_status_report",
+					data : {head:['RBF Amount', 'Bank charges', 'Interest Credited from Bank - Amount', 'Previous balance - Amount', 'Community Contribution Amount', 'Total Fund - Amount', 'Six monthly Expenditure (Rs)', 'Balance in Total', 'Quarter 1 Expenditure', 'Quarter 2 Expenditure' ], data_type:['sum', 'sum', 'sum','sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum'], group_by:['RBF Cycle'], report_data:true, filters:JSON.stringify([])}, 
+					columns : { 'RBF Cycle':'RBF Cycle', 
+							"sum_of_RBF Amount":"Fund received from NHP",
+							"sum_of_Interest Credited from Bank - Amount":"Interest Credited from Bank",
+							"sum_of_Previous balance - Amount":"Previous balance ",
+							"sum_of_Community Contribution Amount":"Community Contribution",
+							"sum_of_Total Fund - Amount":"Total Fund availabel at the start of cycle",
+							"sum_of_Bank charges":"Bank charges",
+							"sum_of_Six monthly Expenditure (Rs)": "Total Expenditure",
+							"sum_of_Balance in Total": "Balance in Total",
+							"sum_of_Quarter 1 Expenditure":"Quarter 1 Expenditure",
+							"sum_of_Quarter 2 Expenditure":"Quarter 2 Expenditure"},
+
+					advanceColumns : [{ data:  null, title:"Total Funds Remaining", "sClass": "binCentered", render: function (data, type, row)
+									{	
+										let result = (data["sum_of_RBF Amount"] - (data["sum_of_Six monthly Expenditure (Rs)"] + data["sum_of_Bank charges"] ));
+										return (result.toFixed(2));
+									}
+								}],
+					columns_defs : [
+						{
+						"render": function (data, type, row) {
+									return (data).toFixed(2);
+									
+								},
+								"targets": [2,3,4,5,6,7,8,9,10,11] ,
+						},      
+					],
+					detail_table_columns : [
+											"Name of Committee",
+											"ctype",
+											"RBF Cycle",
+											"RBF Amount",
+											"Interest Credited from Bank - Amount",
+											
+											"Previous balance - Amount",
+											
+											"Community Contribution Amount",
+											
+											
+											"Total Fund - Amount",
+
+											"Approved Budget",
+											"Six monthly Expenditure (Rs)",
+											"Balance in Total",
+											"Quarter 1 Expenditure",
+											"Quarter 2 Expenditure",
+										
+											"PRIMARY HEALTH CENTER",
+											"STATE",
+											"DISTRICT",
+											"BLOCK",
+											"COMMUNITY HEALTH CENTER",
+											"District Health Unit",
+											"VILLAGE",
+											"SUB CENTER",
+											],
+					},
+
+	fund_status_report_ctype	: {	frame:"fund_status_report",
+					data : {head:['RBF Amount', 'Bank charges', 'Interest Credited from Bank - Amount', 'Previous balance - Amount', 'Community Contribution Amount', 'Total Fund - Amount', 'Six monthly Expenditure (Rs)', 'Balance in Total', 'Quarter 1 Expenditure', 'Quarter 2 Expenditure' ], data_type:['sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum'], group_by:['ctype'], report_data:true, filters:JSON.stringify([])}, 
+					columns : { 'ctype':'Committe Type', 
+							"sum_of_RBF Amount":"Fund received from NHP",
+							"sum_of_Interest Credited from Bank - Amount":"Interest Credited from Bank",
+							"sum_of_Previous balance - Amount":"Previous balance ",
+							"sum_of_Community Contribution Amount":"Community Contribution",
+							"sum_of_Total Fund - Amount":"Total Fund availabel at the start of cycle",
+							"sum_of_Bank charges":"Bank charges",
+							"sum_of_Six monthly Expenditure (Rs)": "Total Expenditure",
+							"sum_of_Balance in Total": "Balance in Total",
+							"sum_of_Quarter 1 Expenditure":"Quarter 1 Expenditure",
+							"sum_of_Quarter 2 Expenditure":"Quarter 2 Expenditure"},
+
+					advanceColumns : [{ data:  null, title:"Total Funds Remaining", "sClass": "binCentered", render: function (data, type, row)
+							{	
+								let result = (data["sum_of_RBF Amount"] - (data["sum_of_Six monthly Expenditure (Rs)"] + data["sum_of_Bank charges"] ));
+								return (result.toFixed(2));
+							}
+						}],
+					columns_defs : [
+						{
+						"render": function (data, type, row) {
+									return (data).toFixed(2);
+									
+								},
+								"targets": [2,3,4,5,6,7,8,9,10,11,12] ,
+						},      
+					],
+					detail_table_columns : [
+											"Name of Committee",
+											"ctype",
+											"RBF Cycle",
+											"RBF Amount",
+											"Interest Credited from Bank - Amount",
+											
+											"Previous balance - Amount",
+											
+											"Community Contribution Amount",
+											
+											
+											"Total Fund - Amount",
+
+											"Approved Budget",
+											"Six monthly Expenditure (Rs)",
+											"Balance in Total",
+											"Quarter 1 Expenditure",
+											"Quarter 2 Expenditure",
+										
+											"PRIMARY HEALTH CENTER",
+											"STATE",
+											"DISTRICT",
+											"BLOCK",
+											"COMMUNITY HEALTH CENTER",
+											"District Health Unit",
+											"VILLAGE",
+											"SUB CENTER",
+											],
+					},
+
+
+	fund_status_report_rbf_ctype	: {	frame:"fund_status_report",
+					data : {head:['RBF Amount', 'Bank charges', 'Interest Credited from Bank - Amount', 'Previous balance - Amount', 'Community Contribution Amount', 'Total Fund - Amount', 'Six monthly Expenditure (Rs)', 'Balance in Total', 'Quarter 1 Expenditure', 'Quarter 2 Expenditure' ], data_type:['sum', 'sum','sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum', 'sum'], group_by:['RBF Cycle', 'ctype'], report_data:true, filters:JSON.stringify([])}, 
+					columns : { 
+							'RBF Cycle': 'RBF Cycle',
+							'ctype':'Committe Type', 
+							"sum_of_RBF Amount":"Fund received from NHP",
+							"sum_of_Interest Credited from Bank - Amount":"Interest Credited from Bank",
+							"sum_of_Previous balance - Amount":"Previous balance ",
+							"sum_of_Community Contribution Amount":"Community Contribution",
+							"sum_of_Total Fund - Amount":"Total Fund availabel at the start of cycle",
+							"sum_of_Bank charges":"Bank charges",
+							"sum_of_Six monthly Expenditure (Rs)": "Total Expenditure",
+							"sum_of_Balance in Total": "Balance in Total",
+							"sum_of_Quarter 1 Expenditure":"Quarter 1 Expenditure",
+							"sum_of_Quarter 2 Expenditure":"Quarter 2 Expenditure"},
+
+					advanceColumns : [{ data:  null, title:"Total Funds Remaining", "sClass": "binCentered", render: function (data, type, row)
+							{	
+								let result = (data["sum_of_RBF Amount"] - (data["sum_of_Six monthly Expenditure (Rs)"] + data["sum_of_Bank charges"] ));
+								return (result.toFixed(2));
+							}
+						}],
+					columns_defs : [
+						{
+						"render": function (data, type, row) {
+									return (data).toFixed(2);
+									
+								},
+								"targets": [3,4,5,6,7,8,9,10,11,12,13] ,
+						},      
+					],
+					detail_table_columns : [
+											"Name of Committee",
+											"ctype",
+											"RBF Cycle",
+											"RBF Amount",
+											"Interest Credited from Bank - Amount",
+											
+											"Previous balance - Amount",
+											
+											"Community Contribution Amount",
+											
+											
+											"Total Fund - Amount",
+
+											"Approved Budget",
+											"Six monthly Expenditure (Rs)",
+											"Balance in Total",
+											"Quarter 1 Expenditure",
+											"Quarter 2 Expenditure",
+										
+											"PRIMARY HEALTH CENTER",
+											"STATE",
+											"DISTRICT",
+											"BLOCK",
+											"COMMUNITY HEALTH CENTER",
+											"District Health Unit",
+											"VILLAGE",
+											"SUB CENTER",
+											],
+					},
+
+
+	rbf_wise_fund_and_expense : rbf_wise_fund_and_expense_conf_generate(),
+
+	district_wise_fund_and_expense : district_wise_fund_and_expense_conf_generate(),
+
+
+	full_dvr_vhc_consolidated : consolidated_dict_generator(['rbf_cycle', 'ctype', "invalid_entry"], [], "VHC_target_indicators_consolidated") ,
+
+	full_dvr_hscmc_consolidated : consolidated_dict_generator(['rbf_cycle', 'ctype', "invalid_entry"], [], "HSCMC_target_indicators_consolidated") ,
+
+	full_dvr_hcmc_consolidated : consolidated_dict_generator(['rbf_cycle', 'ctype', "invalid_entry"], [], "HCMC_target_indicators_consolidated") ,
+
+	full_dvr_vhc_committee_wise_consolidated : consolidated_dict_generator(["Name of Committee", 'rbf_cycle', 'ctype', "total_indicator", "completed_indicator", "invalid_entry"], [], "VHC_target_indicators_consolidated") ,
+
+	full_dvr_hscmc_committee_wise_consolidated : consolidated_dict_generator(["Name of Committee", 'rbf_cycle', 'ctype', "total_indicator", "completed_indicator", "invalid_entry"], [], "HSCMC_target_indicators_consolidated") ,
+
+	full_dvr_hcmc_committee_wise_consolidated : consolidated_dict_generator(["Name of Committee", 'rbf_cycle', 'ctype', "total_indicator", "completed_indicator", "invalid_entry"], [], "HCMC_target_indicators_consolidated") ,
+
+
+	pdo_rbf_consolidated	: consolidated_pdo_dict_generator(['rbf_cycle']),
+
+	pdo_ctype_consolidated	: consolidated_pdo_dict_generator(['ctype']),
+
+	pdo_ctype_ctype_consolidated	: consolidated_pdo_dict_generator(['rbf_cycle', 'ctype']),
+
+
+
+							
+
+
+
+					
+}
+// for(rbf=0; rbf<=10; rbf++)
+// {
+// 	FRAME_configuration['full_dvr_rbf_'+ rbf +'_consolidated'] = consolidated_dict_generator(['rbf_cycle', 'Name of Committee', "invalid_entry"], [{"attr":"rbf_cycle","operator":"==","value":rbf}], "target_indicator_full_dvr")
+// }
+
+
+
+
+function drawReport(frame, dynamic_columns, detail_table_columns)
+{
+	data_frame = FRAME_configuration[frame].frame
+	master_datatable_ajax_url = 	"{% url 'master_record_ajax' profile='dynamic_frame' %}".replace("dynamic_frame", data_frame)
+	jQuery('.modal-body').html(`<table id="example" class="table table-striped table-bordered table-hover text-center dataTable no-footer" width="100%"></table>`);
+	var table = jQuery('#example').DataTable( {
+		// dom: 'Bfrtip',
+		dom : 'lBf<"overflow_handle"t>ip',
+		buttons: [
+					{
+						extend : 'excel',
+						className:"btn-success",
+						title : EXPORT_EXCEL_NAME,
+						text : `<span style="display:none;" class="spinner-border spinner-border-sm export_xlsx_file" role="status" aria-hidden="true"></span>
+								<i class="fa fa-file-excel-o export_xlsx_file" />`,
+					}
+				],
+		ajax:{
+				url : '/dashboard/generate_chart_data/'+ data_frame +'/',
+				type: "get",  // method  ,by default get
+				data: FRAME_configuration[frame].data,
+				dataSrc: function (json) {
+					console.log(json)
+					return json
+				}
+		},
+		columns: dynamic_columns,
+
+		columnDefs: FRAME_configuration[frame].columns_defs,
+
+		order : [
+			 [ 1, 'asc' ]
+		] 
+	});
+
+
+	jQuery('#example tbody').on('click', 'td.details-control', function () {
+
+		EXPORT_EXCEL_NAME = "detailed view of " +EXPORT_EXCEL_NAME.replace("detailed view of ", "");
+		var tr = jQuery(this).closest('tr');
+		console.log(tr.width())
+		var row = table.row( tr );
+		var rowData = row.data();
+
+		let table_filter = []
+		jQuery.each(rowData, function(key, val){
+			table_filter.push({attr:key,  operator: "==", value:val});
+		})
+
+		// table_filter.pop()	
+
+		// table_filter.pop()
+
+		let child_table_id = row.index()+"_child_table";
+		
+		if ( row.child.isShown() ) {
+			// This row is already open - close it
+			row.child.hide();
+			tr.removeClass('shown'); 
+				
+			// Destroy the Child Datatable
+			jQuery('#' + child_table_id).DataTable().destroy();
+			// jQuery('#' + rowData.rbf_cycle.replace(' ', '-')).DataTable().destroy();
+		}
+
+		else {
+		// Open this row
+		// console.log(rowData)
+		// var id = row.index()+"_child_table";
+		// var id = rowData.rbf_cycle.replace(' ', '-');
+		row.child(`<div id="`+child_table_id +`" style="width:`+ (parseInt(jQuery("#example_wrapper").width()) - 15)+ `px"></div>`).show();
+		headers = FRAME_configuration[frame].detail_table_columns;
+		prepare_data_table(jQuery('#'+child_table_id), headers, {dataTableId:child_table_id+"_table", filters:table_filter});
+			tr.addClass('shown');
+		}
+	});
+
+}
+
+
+
+jQuery(document).ready(function() {
+
+    jQuery(".btn-big, .btn-small").click(function(){
+			frame_conf_key = this.getAttribute("frame");
+			jQuery("#reportModal").modal('toggle');
+			let title = this.textContent.trim();
+			EXPORT_EXCEL_NAME = title;
+			jQuery("#report_name").text(title)
+
+			var dynamic_columns = [
+						{	
+						title: "Explore",
+						className: 'details-control',
+						orderable: false,
+						data: null,
+						defaultContent: '',
+						}
+					]
+
+				if(FRAME_configuration[frame_conf_key].no_drill)
+				{
+					dynamic_columns = [];
+				}
+				jQuery.each(FRAME_configuration[frame_conf_key].columns, function( col, col_title )
+				{
+					dynamic_columns.push({data: col, title: col_title});
+				})
+
+				jQuery.each(FRAME_configuration[frame_conf_key].advanceColumns, function( idx, col )
+				{
+					dynamic_columns.push(col);
+				})
+
+
+				dynamic_columns.push(	
+									)
+			drawReport(frame_conf_key, dynamic_columns)
+        })
+  // Main table
+
+
+
+  
+  
+  	// Add event listener for opening and closing first level childdetails
+	
+             
+
+          
+} );
+
+var master_datatable_ajax_url = "{% url 'master_record_ajax' profile='dynamic_frame' %}";
+var hidden_fields = []
+var headers_with_type  = {}
+</script>
+
+<script src="{%static 'admin_panel/vendors/cell_edit/js/dataTables.cellEdit.js'%}"></script>
+
+
+<script src="{%static 'admin_panel/assets/js/datatable_function.js' %}"></script>
+
+	<script src="{%static 'admin_panel/assets/js/prepare_data_table.js'%}"></script>
+	
+
+{% endblock %}

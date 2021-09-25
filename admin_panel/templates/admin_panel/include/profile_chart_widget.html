@@ -1,0 +1,64 @@
+{% load admin_panel_custom_tags %}
+
+{% if widget_chart.chartfor == "bcpm_status" and "Ongoing process" in widget_chart.count_tagline %}
+    <script>
+        can_use_bcpm_status = false;
+        // alert("hi")
+    </script>
+{% endif %}
+
+{% if widget_chart.chartfor == "moic_status" and "Ongoing process" in widget_chart.count_tagline %}
+    <script>
+        can_use_moic_status = false;
+    </script>
+{% endif %}
+
+{% if widget_chart.chartfor == "bam_status" and "Ongoing process" in widget_chart.count_tagline %}
+    <script>
+        can_use_bam_status = false;
+    </script>
+{% endif %}
+<div class="col-sm-6 col-lg-4">
+    <div class="card_size card text-white bg-flat-color-{{forloop.counter}}">
+        <div class="card-body pb-0" chartfor="{{widget_chart.chartfor}}">
+            <div class="dropdown explore_button">
+                <button class="btn bg-transparent dropdown-toggle theme-toggle text-light" type="button" id="dropdownMenuButton1" data-toggle="dropdown">
+                    <i class="fa fa-gears"></i>
+                </button>
+                <div class="dropdown-menu custom_modification" style="left: -98px !important;" aria-labelledby="dropdownMenuButton1">
+                    <div class="dropdown-menu-content">
+                        <a class="dropdown-item"><b>Filter Hierarchy</b></a>
+                        <ul class="list-group">
+                            {% for one_filter in widget_chart.filters %}
+                                <li class="list-group-item"><input type="checkbox" checked value="{{one_filter}}", name="filter[]"> {{one_filter|replace:"_, "}}</li>
+                            {% endfor %}
+                            <li class="list-group-item"><input type="checkbox"  value="state_name", name="filter[]"> State</li>
+                            <li class="list-group-item"><input type="checkbox"  value="region_name", name="filter[]"> Region</li>
+                            <li class="list-group-item"><input type="checkbox" checked value="district_name", name="filter[]"> District</li>
+                            <li class="list-group-item"><input type="checkbox" checked value="block_name", name="filter[]"> Block</li>
+                            {% if "payment_status" not in profile %}
+                                <li class="list-group-item"><input type="checkbox" checked value="sub_center_name", name="filter[]"> Sub Center</li>
+                                {% if profile != "anm" %}
+                                    <li class="list-group-item"><input type="checkbox" checked value="village_name", name="filter[]"> Village</li>
+                                {% endif %}
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="view_detail_chart">
+                <h4 class="mb-0">
+                    {% for one_count in widget_chart.count %}
+                        <span class="count">{{one_count}}</span> {{widget_chart.count_text|list_item:forloop.counter0}}
+                    {% endfor %}
+                </h4>
+                <p class="text-light">{{widget_chart.count_tagline}} &nbsp;</p>
+                <div class="chart-wrapper px-0" >
+                    <canvas id="{{widget_chart.chartfor}}"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!--kamil-->
+
+                                            

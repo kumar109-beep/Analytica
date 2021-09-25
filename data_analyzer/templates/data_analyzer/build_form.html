@@ -1,0 +1,75 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<script>
+    var worker ="data_analyzer";
+</script>
+<link rel="stylesheet" type="text/css" href="{%static 'admin_panel/vendors/jquery-ui/css/jquery-ui.min.css'%}">
+<script type="text/javascript" src="{%static 'admin_panel/vendors/jquery-ui/js/jquery-ui.min.js'%}"></script>
+
+<script src="https://formbuilder.online/assets/js/form-builder.min.js"></script>
+
+
+    
+<!-- THE MODAL WE WILL BE USING -->
+<div class="modal" role="document" id="csv_analyzer">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Form Builder</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea placeholder="or type or paste CSV text here" class="form-control" id="textarea" style="min-width: 100%"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="animated">
+  <div class="animated fadeIn">
+      <div class="row">
+          <div class="col-md-12">
+              
+
+            <div class="card">
+                <div class="card-header text-light bg-dark">
+                    <div class="col-sm-8">
+                        <strong class="card-title">Form Builder</strong><br />
+                    </div>
+                    
+                    <!-- <div class="input-group  col-sm-4">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="inputGroupFileAddon01" data-toggle="modal" data-target="#csv_analyzer">Type/Paste</span>
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="csv" name="filename">
+                            <label class="custom-file-label" for="customFile">Choose file</label>
+                        </div>
+                    </div> -->
+
+                </div>
+                <div class="card-body">
+
+                    <div id="build-wrap"></div>
+                        
+                        <div id="output" style="margin: 10px;"></div>
+                </div>
+            </div><!-- .card -->
+          </div><!-- .col12 -->
+      </div><!-- .row -->
+  </div><!-- .animated fadeIn -->
+</div><!-- .animated -->
+
+
+
+{% endblock %}

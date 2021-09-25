@@ -1,0 +1,100 @@
+{% extends 'admin_panel/layout/base.html' %}
+
+{% load static %}
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block header_tab %}
+
+
+    
+{%  include "admin_panel/layout/tabs.html" %}
+{% endblock %}
+
+{% block content %}
+
+
+
+
+{% endblock %}
+
+{% block script_content %}
+
+<script>
+
+
+
+function load_geography(geo_select_box_id, parent_geo_id_set=1)
+{
+    jQuery.ajax({
+        url : "{% url 'load_geography' %}",
+        type: 'post',
+        data: {
+            parent_geo_id : parent_geo_id_set,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success:function(data) {
+            jQuery.each(data, function(i, value) {
+                jQuery("#"+geo_select_box_id).append(jQuery('<option>').text(value.name).attr('value', value.id).attr('parent', parent_geo_id_set));
+            });
+            jQuery('.selectpicker').selectpicker('refresh');
+            
+            
+        }
+    });
+}
+
+
+jQuery(function () {
+    jQuery(".selectpicker").on("changed.bs.select", function(e, clickedIndex, newValue, oldValue) {
+        var selectedD = jQuery(this).find('option').eq(clickedIndex).val();
+        // console.log('selectedD: ' + selectedD + '  newValue: ' + newValue + ' oldValue: ' + oldValue);
+        if (jQuery(this).attr('id') === "state_select")
+        {
+            let option = jQuery('#district_select').find("option[parent='"+selectedD+"']");
+            if(newValue)
+            {
+                if(option.length == 0)
+                {
+                    load_geography("district_select", selectedD);
+                }
+                else
+                {
+                    option.show()
+                }
+            }
+            else
+            {
+                option.hide();
+                
+            }
+        }
+
+        jQuery('.selectpicker').selectpicker('refresh');
+        
+    });
+});
+
+
+
+
+
+
+jQuery(document).ready(function(){
+    jQuery('.selectpicker').selectpicker();
+    load_geography("state_select", 1);
+    // jQuery(".bs-select-all").on('click', function() {
+    //     alert(jQuery(this).parent);
+    // });
+    // jQuery(".bs-deselect-all").on('click', function() {
+    //     alert("ALL DESELECTED");
+    // });
+})
+
+
+
+
+</script>
+
+{% endblock %}

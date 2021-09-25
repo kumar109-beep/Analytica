@@ -1,0 +1,53 @@
+.dataTables_length{
+    float:left;
+}
+.dataTables_filter{
+    float: right;
+}
+.dataTables_wrapper .dt-buttons {
+    float: right;
+    margin-top: -3px;
+    /* height: 36px; */
+}
+.dataTables_paginate{
+    /* display: inline-block; */
+    float: right;
+}
+.dataTables_info{
+    float:left;
+}
+
+.dataTables_processing{
+    align-items: center;
+    border: none;
+    width: 44px;
+    float: left;
+    padding-left: 35px;
+}
+
+.overflow_handle{
+    width: 100%; 
+    /* width: 75vw; */
+    overflow-x: auto;
+}
+
+
+@media only screen and (max-width: 360px) {
+  .modal-lg {
+    max-width: 100% !important;
+  }
+}
+
+
+
+.blinking {
+    animation: blinker 1s linear infinite;
+    border: 4px dashed red !important;
+  }
+  
+@keyframes blinker {
+50% {
+    /* opacity: 0; */
+    background-color: yellow;
+}
+}

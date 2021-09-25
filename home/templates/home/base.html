@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{% block title %}{% endblock %}| Analytica</title>
+  <link rel="shortcut icon" type="image/png" href="{% static 'home/images/favicon.ico' %}"/>
+  <style>
+
+    html{
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar {
+        display: none;
+    }
+  
+  </style>
+
+  <link rel="stylesheet" href="{%static 'admin_panel/vendors/bootstrap/dist/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{%static 'admin_panel/vendors/font-awesome/css/font-awesome.min.css' %}">
+  <link rel="stylesheet" href="{%static 'admin_panel/assets/css/style.css' %}">
+  <script src="{%static 'admin_panel/vendors/jquery/dist/jquery.min.js' %}"></script>
+  <script src="{%static 'admin_panel/vendors/popper.js/dist/umd/popper.min.js' %}"></script>
+  <script src="{%static 'admin_panel/vendors/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+</head>
+<body>
+  {% block content %} {% endblock %}
+</body>
+</html>

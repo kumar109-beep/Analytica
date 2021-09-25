@@ -1,0 +1,416 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+{% block title %}
+  Dashboard
+{% endblock %}
+
+
+{% block header_tab %}
+{%  include "admin_panel/layout/tabs.html" %}
+{% endblock %}
+{% block content %}
+<style>
+    tbody tr td{
+        padding: 10px;
+    }
+    .leaflet-popup-content{
+        max-height: 150px;
+        overflow: auto;
+    }
+    
+</style>
+<style type="text/css">
+    .legend {
+        color: #555;
+        padding: 6px 8px;
+        font: 12px Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        background: white;
+        background: rgba(255,255,255,0.8);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+    }
+    .legend ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        clear: both;
+    }
+    .legend li {
+        display: inline-block;
+        width: 30px;
+        height: 22px;
+    }
+    .legend .min {
+        float: left;
+        padding-bottom: 5px;
+    }
+    .legend .max {
+        float: right;
+    }
+</style>
+        
+<script src="{%static 'admin_panel/dynamic_filter/js/bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/chosen/chosen.min.css'%}">
+<link rel="stylesheet" href="{%static 'admin_panel/assets/css/style.css'%}">
+
+
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/leaflet/leaflet.css'%}">
+<script src="{%static 'admin_panel/vendors/leaflet/leaflet.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/leaflet/choropleth.js'%}"></script>
+
+
+<!-- <script src="{%static 'admin_panel/vendors/leaflet/leaflet.ajax.min.js'%}"></script> -->
+
+<script src="{%static 'admin_panel/vendors/leaflet/leaflet.ajax.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/leaflet/spin.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/leaflet/leaflet.spin.js'%}"></script>
+
+<script src="{%static 'admin_panel/vendors/db.js/dist/db.js'%}"></script>
+
+<script>
+    // Enable Filter values
+    var worker = "{{worker}}";
+
+    var server;
+    db.open( {
+        server: 'gis',
+        version: 1,
+        schema: {
+            district: {
+                key: { keyPath: 'properties.DT_CODE' , autoIncrement: true },
+                // Optionally add indexes
+                indexes: {
+                        DT_CODE: { },
+                    }
+                },
+            block: {
+                key: { keyPath: 'id' , autoIncrement: true },
+                // Optionally add indexes
+                indexes: {
+                        DT_CODE: {keyPath: 'properties.DT_CODE' },
+                    }
+                }
+            }
+        } ).then( function ( s ) {
+            console.log("Server Created");
+            server = s
+        } );
+
+</script>
+
+
+<style>
+#map { min-height: 90vh; }
+
+</style>
+<div class="animated">
+    <div class="animated fadeIn">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card" id="gis_card">
+                    <div style="padding: 0px;" class="card-body">
+                        <div id="map"></div>
+                    </div>
+                </div><!-- .card -->
+            </div><!-- .col12 -->
+        </div><!-- .row -->
+    </div><!-- .animated fadeIn -->
+</div><!-- .animated -->
+{% endblock %}
+
+{% block script_content %}
+
+<script>
+
+GIS_SHORTCODE = {
+count : "No of " + worker.toUpperCase(),
+State:"State Code",
+District:"District Code",
+Level:"Level",
+Name:"Name",
+TRU:"TRU",
+TRU1:"Area",
+No_HH:"No of Household",
+TOT_P:"Total population Person",
+TOT_M:"Total population Male",
+TOT_F:"Total population Female",
+P_06:"Population in the age group 0-6 Person",
+M_06:"Population in the age group 0-6 Male",
+F_06:"Population in the age group 0-6 Female",
+P_SC:"Scheduled Castes population Person",
+M_SC:"Scheduled Castes population Male",
+F_SC:"Scheduled Castes population Female",
+P_ST:"Scheduled Tribes population Person",
+M_ST:"Scheduled Tribes population Male",
+F_ST:"Scheduled Tribes population Female",
+P_LIT:"Literates population Person",
+M_LIT:"Literates population Male",
+F_LIT:"Literates population Female",
+P_ILL:"Illiterate Persons",
+M_ILL:"Illiterate Male",
+F_ILL:"Illiterate Female",
+TOT_WORK_P:"Total Worker Population Person",
+TOT_WORK_M:"Total Worker Population Male",
+TOT_WORK_F:"Total Worker Population Female",
+MAINWORK_P:"Main Working Population Person",
+MAINWORK_M:"Main Working Population Male",
+MAINWORK_F:"Main Working Population Female",
+MAIN_CL_P:"Main Cultivator Population Person",
+MAIN_CL_M:"Main Cultivator Population Male",
+MAIN_CL_F:"Main Cultivator Population Female",
+MAIN_AL_P:"Main Agricultural Labourers Population Person",
+MAIN_AL_M:"Main Agricultural Labourers Population Male",
+MAIN_AL_F:"Main Agricultural Labourers Population Female",
+MAIN_HH_P:"Main Household Industries Population Person",
+MAIN_HH_M:"Main Household Industries Population Male",
+MAIN_HH_F:"Main Household Industries Population Female",
+MAIN_OT_P:"Main Other Workers Population Person",
+MAIN_OT_M:"Main Other Workers Population Male",
+MAIN_OT_F:"Main Other Workers Population Female",
+MARGWORK_P:"Marginal Worker Population Person",
+MARGWORK_M:"Marginal Worker Population Male",
+MARGWORK_F:"Marginal Worker Population Female",
+MARG_CL_P:"Marginal Cultivator Population Person",
+MARG_CL_M:"Marginal Cultivator Population Male",
+MARG_CL_F:"Marginal Cultivator Population Female",
+MARG_AL_P:"Marginal Agriculture Labourers Population Person",
+MARG_AL_M:"Marginal Agriculture Labourers Population Male",
+MARG_AL_F:"Marginal Agriculture Labourers Population Female",
+MARG_HH_P:"Marginal Household Industries Population Person",
+MARG_HH_M:"Marginal Household Industries Population Male",
+MARG_HH_F:"Marginal Household Industries Population Female",
+MARG_OT_P:"Marginal Other Workers Population Person",
+MARG_OT_M:"Marginal Other Workers Population Male",
+MARG_OT_F:"Marginal Other Workers Population Female",
+MARGWORK_3_6_P:"Marginal Worker Population 3-6 Person",
+MARGWORK_3_6_M:"Marginal Worker Population 3-6 Male",
+MARGWORK_3_6_F:"Marginal Worker Population 3-6 Female",
+MARG_CL_3_6_P:"Marginal Cultivator Population 3-6 Person",
+MARG_CL_3_6_M:"Marginal Cultivator Population 3-6 Male",
+MARG_CL_3_6_F:"Marginal Cultivator Population 3-6 Female",
+MARG_AL_3_6_P:"Marginal Agriculture Labourers Population 3-6 Person",
+MARG_AL_3_6_M:"Marginal Agriculture Labourers Population 3-6 Male",
+MARG_AL_3_6_F:"Marginal Agriculture Labourers Population 3-6 Female",
+MARG_HH_3_6_P:"Marginal Household Industries Population 3-6 Person",
+MARG_HH_3_6_M:"Marginal Household Industries Population 3-6 Male",
+MARG_HH_3_6_F:"Marginal Household Industries Population 3-6 Female",
+MARG_OT_3_6_P:"Marginal Other Workers Population Person 3-6 Person",
+MARG_OT_3_6_M:"Marginal Other Workers Population Person 3-6 Male",
+MARG_OT_3_6_F:"Marginal Other Workers Population Person 3-6 Female",
+MARGWORK_0_3_P:"Marginal Worker Population 0-3 Person",
+MARGWORK_0_3_M:"Marginal Worker Population 0-3 Male",
+MARGWORK_0_3_F:"Marginal Worker Population 0-3 Female",
+MARG_CL_0_3_P:"Marginal Cultivator Population 0-3 Person",
+MARG_CL_0_3_M:"Marginal Cultivator Population 0-3 Male",
+MARG_CL_0_3_F:"Marginal Cultivator Population 0-3 Female",
+MARG_AL_0_3_P:"Marginal Agriculture Labourers Population 0-3 Person",
+MARG_AL_0_3_M:"Marginal Agriculture Labourers Population 0-3 Male",
+MARG_AL_0_3_F:"Marginal Agriculture Labourers Population 0-3 Female",
+MARG_HH_0_3_P:"Marginal Household Industries Population 0-3 Person",
+MARG_HH_0_3_M:"Marginal Household Industries Population 0-3 Male",
+MARG_HH_0_3_F:"Marginal Household Industries Population 0-3 Female",
+MARG_OT_0_3_P:"Marginal Other Workers Population 0-3 Person",
+MARG_OT_0_3_M:"Marginal Other Workers Population 0-3 Male",
+MARG_OT_0_3_F:"Marginal Other Workers Population 0-3 Female",
+NON_WORK_P:"Non Working Population Person",
+NON_WORK_M:"Non Working Population Male",
+NON_WORK_F:"Non Working Population Female"
+};
+
+var map = L.map('map').setView([27.200900160835698, 80.82637564922959], 7)
+map.scrollWheelZoom.disable();
+L.control.scale().addTo(map);
+
+
+var active_layer_name   = "false";
+var district_layer      = L.featureGroup();
+var block_layer         = L.featureGroup();
+
+var chloropleth_legend  = false;
+var chloropleth_layer   = L.featureGroup().addTo(map);
+
+
+function renderGIS(layer_name="", filter=[]) {
+
+    if( (eval(active_layer_name).toGeoJSON().features.length > 1) && (filter.length==0) )
+    {
+        generate_chloropleth();
+    }
+    else
+    {
+        block_layer.clearLayers();
+        level = active_layer_name.replace('_layer', '')
+        query_string = "level="+level+"&filter="+JSON.stringify(filter);
+        jQuery.getJSON('/admin/get_geojson/{{profile}}/?'+query_string, function (geojson) {
+            // addToIndexedDB(geojson);
+            L.geoJSON(geojson).addTo(eval(active_layer_name));
+            $filter_element = jQuery("#gis-filter");
+            pre_val = $filter_element.val();
+            $filter_element.find('option').remove();
+            var option = "";
+            jQuery.each(geojson.features[0].properties, function(key, val){
+                if(jQuery.isNumeric(val) && (GIS_SHORTCODE[key] != undefined ) && (key !="State"))
+                {
+                    option += '<option value="'+ key + '">' + GIS_SHORTCODE[key] + '</option>';
+                }
+            })
+            $filter_element.append(option);
+            $filter_element.show();
+            //Ensure that if value already set in select box it select the same on view change
+            if(pre_val && (pre_val in geojson.features[0].properties))
+                $filter_element.val(pre_val);
+            generate_chloropleth();
+    
+            if(filter.length)
+            {
+                jQuery("#map_reset").show();
+            }
+
+        })
+    }
+}
+
+
+
+function addToIndexedDB(geojson)
+{
+    jQuery.each(geojson.features, function(idx, val){
+        server.district.add(val).then(function (item) {
+            console.log(val);
+            console.log("Added");
+        });
+
+    })
+    
+}
+
+
+function zoomToFeature(e) {
+    district_layer.addTo(map);
+    map.fitBounds(e.target.getBounds());
+    active_layer_name = "block_layer";
+    reset_chloropleth();
+    renderGIS("block", [{attr:"DT_CODE", operator:"==", value:e.target.feature.properties.DT_CODE}]);
+    
+}
+
+
+function reset_chloropleth()
+{
+    chloropleth_layer.clearLayers();
+    if(chloropleth_legend)
+    map.removeControl(chloropleth_legend);
+}
+
+
+function generate_chloropleth(geojson=eval(active_layer_name).toGeoJSON(), can_drill=true)
+{
+    reset_chloropleth();
+    filter_on = jQuery("#gis-filter").val();
+
+    choroplethLayer = L.choropleth(geojson, {
+        valueProperty :filter_on,
+        // valueProperty: 'MAIN_OT_P',
+        scale: ['#FFFDB3', '#FF8B3E',  '#AD022F'],
+        steps: 7,
+        mode: 'q', // q for quantile, e for equidistant, k for k-means
+        style: {
+        color: '#fff',
+        weight: 2,
+        fillOpacity: 0.7
+        },
+        onEachFeature: function (feature, layer) {
+            // console.log(feature.properties)
+            info_box = "<table border='1'>";
+            info_box += "<tr><td><b>District<b></td><td>" + feature.properties["DT_NAME"] + "</td></tr>";
+            
+            if(feature.properties["BLOCK_NAME"] != undefined)
+            {
+                info_box += "<tr><td><b>Block</b><td>" + feature.properties["BLOCK_NAME"] + "</td></tr>";
+            }
+            
+
+            tag_info = '<i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="' + GIS_SHORTCODE[filter_on] + '"></i>';
+
+            info_box += "<tr><td><b>"+ tag_info +" "+ filter_on +"<b></td><td>" + feature.properties[filter_on] + "</td></tr>";
+            info_box += "<ul>"
+
+            layer.bindPopup(info_box, {closeOnClick: false, autoClose: false});  
+            // layer.bindTooltip(info_box);
+
+            if(can_drill)
+            {
+                layer.on({
+                        dblclick: zoomToFeature
+                    });
+            }
+        }
+    }).addTo(chloropleth_layer)
+
+    chloropleth_legend = L.control({ position: 'topright' });
+    chloropleth_legend.onAdd = function (chloropleth_layer) {
+        var div = L.DomUtil.create('div', 'info legend')
+        var limits = choroplethLayer.options.limits
+        var colors = choroplethLayer.options.colors
+        var labels = []
+        
+        div.innerHTML = '<span id="map_reset" class="ti-reload" style=" display:none; font-size: 34px; position: absolute;top: 1px;left: -55px;background: rgba(255,255,255,0.8);padding: 10px;"></span> <div class="labels"><div class="min">' + limits[0] + '</div> \
+                <div class="max">' + limits[limits.length - 1] + '</div></div>'
+
+        limits.forEach(function (limit, index) {
+        labels.push('<li style="background-color: ' + colors[index] + '"></li>')
+        })
+        div.innerHTML += '<ul>' + labels.join('') + '</ul>'
+        return div
+    }
+    chloropleth_legend.addTo(map)
+
+}
+
+jQuery('body').on('click', '#map_reset', function() {
+    block_layer.clearLayers();
+    map.setView([26.8467, 80.9462], 7)
+    active_layer_name = "district_layer";
+    renderGIS();
+    jQuery(this).hide();
+ })
+
+
+
+jQuery( document ).ready(function() {
+
+    jQuery("form :input").change(function() {
+        if(jQuery(this).attr("type") == "radio")
+        {
+            if(eval(active_layer_name))
+            {
+                map.removeLayer(eval(active_layer_name))
+            }
+            active_layer_name = jQuery(this).attr("id")
+            renderGIS();
+        }
+        else
+        {
+            var optionSelected = jQuery("option:selected", jQuery(this));
+            var valueSelected = this.value;
+            console.log( jQuery(this).valueSelected)
+            generate_chloropleth();
+        }
+        // jQuery(this).closest('form').data('changed', true);
+    });
+
+    scroll_to_head(function () {
+        L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map)
+    })
+
+});
+
+
+</script>
+
+
+{% endblock %}

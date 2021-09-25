@@ -1,0 +1,52 @@
+
+.explore_button{
+  position: absolute;
+  top: 10px;
+  right: 5px;
+}
+
+.card_size{
+  transition: all 1s linear;
+  /* height: 3vh; */
+  /* clear: both; */
+  min-height: 35vh;
+}
+
+.custom_modification{
+  left: -100px !important;
+  height: 249px;
+  overflow: auto;
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+  position: relative;
+  -webkit-animation-name: animatebottom;
+  -webkit-animation-duration: 1s;
+  animation-name: animatebottom;
+  animation-duration: 1s;
+}
+
+@-webkit-keyframes animatebottom {
+  from { bottom:-100px; opacity:0 } 
+  to { bottom:0px; opacity:1 }
+}
+
+@keyframes animatebottom { 
+  from{ bottom:-100px; opacity:0 } 
+  to{ bottom:0; opacity:1 }
+}
+
+#contextMenu{
+  position:absolute;
+  border:1px solid green;
+  background:white;
+  list-style:none;
+  padding:3px;
+}
+.menu-item:hover {
+  background: #dddddd;
+  text-decoration: underline;
+  cursor: pointer;
+}
+

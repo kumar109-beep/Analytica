@@ -1,0 +1,193 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/datatables.net-bs4/css/dataTables.bootstrap4.min.css'%}">  
+
+<script src="{%static 'admin_panel/vendors/datatables.net/js/jquery.dataTables.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-bs4/js/dataTables.bootstrap4.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-buttons/js/dataTables.buttons.min.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js'%}"></script>
+
+
+<script src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.min.js"></script>
+
+<!-- THE MODAL WE WILL BE USING -->
+<div class="modal" id="modal-user">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    </div>
+  </div>
+</div>
+
+<script>
+var worker ="panel_management";
+</script>
+
+<div class="animated">
+  <div class="animated fadeIn">
+      <div class="row">
+          <div class="col-md-12">
+              <div class="card">
+                  <div class="card-header text-light bg-dark">
+                      <strong class="card-title">Custom Edit Requests</strong>
+                        
+                        <select name="select" id="request_type_select" class="form-control form-control-sm col-sm-3 pull-right">
+                          <option value="">Pending Request</option>
+                          <option value="1">Approved Request</option>
+                          <option value="0">Rejected Request</option>
+                        </select> 
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive"> 
+                        <table id="master-details-data-table">
+
+                        </table>
+                      <table id="ajax_table" class="table table-bordred table-striped">
+                        
+                      </table>
+                      <div class="clearfix"></div>
+                    </div>    
+                  </div>
+              </div><!-- .card -->
+          </div><!-- .col12 -->
+      </div><!-- .row -->
+  </div><!-- .animated fadeIn -->
+</div><!-- .animated -->
+
+
+
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="confirmModalLabel"></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <div class="form-group">
+                <textarea required name="textarea-input" id="comment" rows="9" placeholder="Justify your action" class="form-control"></textarea>
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button id="approve_action" type="button" class="btn btn-primary">Confirm</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script>
+
+
+  function confirm_edit_request(request_id, status) 
+  {
+    comment = jQuery("#comment").val()
+    console.log(request_id, status, comment);
+
+    jQuery.ajax({
+      url: "/dataframe/edit/"+request_id+"/",
+      method: "PATCH",
+      headers:{
+        "X-CSRFToken": '{{ csrf_token }}'
+      },
+      dataType: 'json',
+      data: { verified:status, comment:comment },
+    }).done(function(response) {
+
+      // alert("Request updated for "+ response['user'])
+      jQuery('#ajax_table').DataTable().ajax.reload()
+      jQuery('#confirmModal').modal('hide');
+      
+    }).fail(function( jqXHR, textStatus ) {
+      
+    });
+
+
+
+  }
+
+ function update_edit_request(event, request_id)
+ {
+   if(jQuery(event).attr('class') === 'btn btn-success')
+   {
+    jQuery("#confirmModalLabel").text("Why You Approving");
+    jQuery('#approve_action').attr('onclick', 'confirm_edit_request(' +request_id  + ', 1)');
+   }
+   else
+   {
+    jQuery("#confirmModalLabel").text("Why You Rejecting");
+    jQuery('#approve_action').attr('onclick', 'confirm_edit_request(' +request_id  + ', 0)');
+   }
+
+   jQuery('#confirmModal').modal('show');
+ }
+
+
+  jQuery(document).ready(function() {
+
+
+    jQuery("#request_type_select").change(function () {
+      jQuery('#ajax_table').DataTable().ajax.reload()
+    })
+
+    cols = ['user', 'frame', 'col_name', 'old_val', 'new_val'];
+
+    dt_cols = []
+    jQuery.each(cols, function(idx, col){
+      dt_cols.push({data:col, title:col.replace(/_/g, ' ')});
+    })
+
+    dt_cols.push({data: "id" , render : function ( data, type, row, meta ) {
+              // console.log(data, type, row, meta)
+              return type === 'display'  ?
+                '<button type="button" onclick="update_edit_request(this, '+ data +');" class="btn btn-success">Approve</button> <button type="button" onclick="update_edit_request(this, '+ data +');" class="btn btn-danger">Reject</button>' :
+                data;
+            }, "orderable": false, title: "Action"
+            
+            },);
+
+    
+
+
+    // console.log(dt_cols)
+      var dt_table = jQuery('#ajax_table').dataTable({
+          
+          columns: dt_cols,
+          searching: true,
+          processing: true,
+          serverSide: true,
+          stateSave: true,
+          ajax: {
+              url: "{% url 'edit_request_list' %}",
+              data: function ( d ) {
+                  d.myKey = "myValue";
+                  d.verified = jQuery("#request_type_select").val()
+                  // d.custom = $('#myInput').val();
+                  // etc
+              }
+          },
+          
+          // ajax: "{% url 'edit_request_list' %}?verified=",
+
+          initComplete:function( settings, json){
+              // console.log(json);
+              // call your function here
+              jQuery("thead").addClass("text-capitalize");
+              // console.log(settings)
+          }
+      });
+
+      
+  
+  });
+  
+  </script>
+
+
+{% endblock %}
+

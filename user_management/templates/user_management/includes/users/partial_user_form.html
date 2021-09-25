@@ -1,0 +1,26 @@
+{% load widget_tweaks %}
+
+{% load admin_panel_custom_tags %}
+
+{% for field in form %}
+	{% if forloop.counter == 4 %}
+		{% if request.GET.permissions.items %}
+			<div class="form-group">
+				<label for="contributor_permission">Permission</label><br />
+				{% for key, value in request.GET.permissions.items %}
+					<label class="checkbox-inline">
+					  <input name="permissions[]" type="checkbox" value="{{ key }}" {% if value %} checked {% endif %}>{{ key|replace:"_, " }}
+					</label>
+				{% endfor %}
+			</div>
+		{% endif %}
+	{% endif %}
+	<div class="form-group{% if field.errors %} has-error{% endif %}">
+	<label for="{{ field.id_for_label }}">{{ field.label }}</label>
+	<!-- <label style="color:green;" for="{{ field.username }}">{{ field.label }}</label> -->
+	{% render_field field class="form-control" %}
+	{% for error in field.errors %}
+	  <p class="help-block">{{ error }}</p>
+	{% endfor %}
+	</div>
+{% endfor %}

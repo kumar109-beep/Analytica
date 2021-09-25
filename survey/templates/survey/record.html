@@ -1,0 +1,140 @@
+{% extends 'admin_panel/layout/base.html' %}
+
+{% load static %}
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block header_tab %}
+
+    <style>
+        .show-tick.bootstrap-select .dropdown-menu .selected span.check-mark{
+            left: 5px;
+        }
+    </style>
+    <script>
+        var worker="survey";
+        
+        var core_json_data = {};
+        
+        var district = "Kanshiram Nagar";
+        jQuery(document).ready(function(){
+            
+    
+            var json_data = JSON.parse(`{{json_data|safe}}`);
+    
+            jQuery('.selectpicker').change(function() {
+                prepare_analytics()
+            }); 
+
+            let count = 0;
+            jQuery.each(json_data, function(idx, one_data){
+                let ind = one_data.Indicator;
+                delete one_data.Indicator;
+                if(count < 2)
+                    jQuery("#indicator_select").append("<option selected>"+ind +"</option>")
+                else
+                    jQuery("#indicator_select").append("<option>"+ind +"</option>")
+                count++;
+                core_json_data[ind] = one_data;
+            })
+
+            districts = Object.keys(Object.values(core_json_data)[0]);
+            districts.sort()
+            jQuery.each(districts, function(idx, one_data){
+                if(one_data.indexOf("- Total") != -1)
+                    jQuery("#district_select").append("<option selected>"+one_data +"</option>");
+                else
+                    jQuery("#district_select").append("<option>"+one_data +"</option>");
+            })
+            jQuery(".selectpicker").trigger("change");
+            
+        })
+    
+        function prepare_analytics()
+        {
+            result = {}
+            let indicators = jQuery("#indicator_select").val();
+            let districts = jQuery("#district_select").val();
+            if(indicators && districts)
+            {
+                clear_analytics();
+                jQuery.each(indicators, function(idx, indicator){
+                    result[indicator] = {};
+                    jQuery.each(districts, function(idx, district){
+                        result[indicator][district] = core_json_data[indicator][district];
+                    })
+                })
+    
+                // console.log(result);
+    
+                jQuery.each(result, function(label, info_set){
+                    jQuery(".mt-3").append(make_card(label, info_set));
+                })
+            }
+        }
+    
+        function clear_analytics()
+        {
+            jQuery('.mt-3').html('');
+        }
+    
+        function load_survey_data()
+        {
+            jQuery.ajax({
+                type: 'POST',
+                url: "/survey/analytics/nfhs_4/",
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    district : district,
+                        
+            },
+                dataType: "json",
+                success: function(resultData) { 
+                    // console.log(resultData)
+                    jQuery.each(resultData, function(n, elem) {
+                        console.log(elem)
+                        let label = elem.Indicator;
+                        delete elem.Indicator;
+    
+                        elemnt = make_card(label, elem)
+                        if(elemnt)
+                            jQuery(".mt-3").append(elemnt);
+                    });
+                }
+            });
+        }
+    
+        function make_card(label, info_set)
+        {
+            list_str = ""
+            jQuery.each(info_set, function(attr, val){
+                list_str += `<li class="list-group-item">
+                                <a href="#"> <i class="fa fa-map-marker"></i> `+ attr +`<span class="badge badge-primary pull-right">`+ val +`</span></a>
+                            </li>`;
+            })
+        
+            return `
+            <div class="col-lg-4 col-md-6">
+                <aside class="profile-nav alt">
+                    <section class="card">
+                        <div class="card-header alt bg-dark" style="height:90px; overflow:auto;">
+                            <h4 class="text-light display-6">` + label + `</h4>
+                            
+                        </div>
+        
+                        <ul class="list-group list-group-flush">
+                            `+ list_str +`
+                        </ul>
+                    </section>
+                </aside>
+            </div>`;
+        }
+    </script>
+{%  include "admin_panel/layout/tabs.html" %}
+{% endblock %}
+
+{% block content %}
+
+
+{% endblock %}

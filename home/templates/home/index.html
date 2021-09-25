@@ -1,0 +1,401 @@
+    {% extends "home/base.html" %}
+    {% block content %}
+    {% load static %}
+    {% load permission_tags %}
+    {% load crispy_forms_tags %}
+
+    
+
+    <!-- include "home/notification.html" -->
+
+    <div class="modal fade" id="login-signup" tabindex="-1" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content model_blur_alpha">
+                <div class="modal-body">
+                    {% if not request.user.is_authenticated %}
+                        <ul class="nav nav-pills nav-fill mb-1" id="pills-tab" role="tablist">
+                            <li class="nav-item"> <a class="nav-link active" id="pills-signin-tab" data-toggle="pill" href="#pills-signin" role="tab" aria-controls="pills-signin" aria-selected="true">Sign In</a> </li>
+                            <li class="nav-item"> <a class="nav-link" id="pills-signup-tab" data-toggle="pill" href="#pills-signup" role="tab" aria-controls="pills-signup" aria-selected="false">Sign Up</a> </li>
+                        </ul>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-signin" role="tabpanel" aria-labelledby="pills-signin-tab">
+                                <form action="{% url 'loginUser'%}" method="post" novalidate>
+                                    {% csrf_token %}
+                                    {{ signinform|crispy }}
+                                    <div class="checkbox">
+                                    <label>
+                                        <input name="stayloggedin"  type="checkbox"> Remember Me
+                                    </label>
+                                    <label class="pull-right">
+                                        <a href="{% url 'password_reset' %}">Forgotten Password?</a>
+                                    </label>
+                                    </div>
+                                    <button type="button" class="btn btn-block btn_transparent">Sign in</button>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="pills-signup" role="tabpanel" aria-labelledby="pills-signup-tab">
+                                    <form action="{% url 'signup'%}" method="post" novalidate>
+                                        {% csrf_token %}
+                                        {{ signupform|crispy }}
+                                        <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox"> I agree to the Terms and Conditions
+                                        </label>
+                                        <label class="pull-right">
+                                            <a href="{% url 'password_reset' %}">Terms and Conditions</a>
+                                        </label>
+                                        </div>
+                                        <button type="button" class="btn btn_transparent btn-block">Sign Up</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <h3>Hi <span class="text-capitalize">{{request.user.username}}</span></h3>
+                        <p>You already logged in</p>
+
+                            {%if user|has_role:'admin, contributor, member' %}
+                                <a href="{%url 'analytics' profile='asha'%}">Explore Panel</a>
+                            {% elif user|has_role:'nhp_user'%}
+                                <a href="{%url 'analytics' profile='committees'%}">Explore Panel</a>
+                            {% endif %}
+                        <a href="{%url 'logout'%}">Logout</a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <link rel="stylesheet" href="{% static 'home/css/home_style.css' %}" />
+        <section style="min-height: 100vh" class="wm">
+            <div class="container inner">
+                <div class="eight columns">
+                <h1> T-Analytica </h1>
+                <h3> Turn Data into Information, and Information into Insight. </h3>
+                <button class="btn btn_transparent glow-on-hover" data-toggle="modal" data-target="#login-signup">Let's get Started</button>
+                <!-- <a class="rainbow-button" data-toggle="modal" data-target="#login-signup">Let's get Started</a> -->
+                </div>
+            </div>
+        </section>
+
+        <style>
+            .glow-on-hover {
+                /* width: 220px;
+                height: 50px;
+                border: none;
+                outline: none;
+                color: #fff; */
+                /* background: #111; */
+                /* cursor: pointer; */
+                position: relative;
+                /* z-index: 0; */
+                /* border-radius: 10px; */
+            }
+
+            .glow-on-hover:before {
+                content: '';
+                /* background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); */
+                background: linear-gradient(30deg,#A62343,  #0FE7E7, #77ADB9, #202428, #B54B93, #81F100, #1D315F, #5C848D, #F5D421);
+                position: absolute;
+                top: -2px;
+                left:-2px;
+                background-size: 400%;
+                z-index: -1;
+                filter: blur(5px);
+                width: calc(100% + 4px);
+                height: calc(100% + 4px);
+                animation: glowing 20s linear infinite;
+                opacity: 0;
+                transition: opacity .3s ease-in-out;
+                border-radius: 10px;
+            }
+
+            .glow-on-hover:active {
+                color: #000
+            }
+
+            .glow-on-hover:active:after {
+                background: transparent;
+            }
+
+            .glow-on-hover:hover:before {
+                opacity: 1;
+            }
+
+            .glow-on-hover:after {
+                z-index: -1;
+                content: '';
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                left: 0;
+                top: 0;
+                border-radius: 10px;
+            }
+
+            @keyframes glowing {
+                0% { background-position: 0 0; }
+                50% { background-position: 400% 0; }
+                100% { background-position: 0 0; }
+            }
+        </style>
+
+
+        <style>
+
+            /* Footer css */
+            .copyright{
+                background-color:#f0f0f0;
+            }
+
+
+            footer{
+                background-color:#202428;
+                /* padding: 60px 0px; */
+            }
+
+            .copyright_txt{
+                float: right;
+            }
+
+            @media(max-width:468px)
+            {
+                .footer_on_mobile{
+                    text-align:center
+                }
+
+                .copyright_txt{
+                    float: none;
+                    text-align: center
+                }
+            }
+
+            .card-body{
+                padding: 0px;
+            }  
+
+            #contributors:hover {
+                cursor: pointer;
+            }
+
+            .no-padding{
+                padding: 0px;
+            }
+
+            .tag_text{
+                -ms-transform: rotate(45deg);
+                -webkit-transform: rotate(45deg);
+                transform: rotate(45deg);
+                color: white;
+                width: 71px;
+                margin-left: 15px;
+                margin-top: 8px;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+        </style>
+
+
+
+
+
+
+
+    <div class="modal fade" id="contributors" tabindex="-1" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content model_blur_alpha">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mediumModalLabel">Contributors</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="feed-box text-center">
+                                <section class="card no-padding">
+                                    <div class="card-body">
+                                        <div class="corner-ribon black-ribon">
+                                            <p class="tag_text">Developer</p>
+                                            <!-- <i class="fa fa-twitter"></i> -->
+                                        </div>
+                                        <a href="https://www.tattvafoundation.org/" target="_blank" >
+                                            <img class="align-self-center rounded-circle mr-3"  alt="" src="{% static 'home/images/logos/tattva.png'%}">
+                                        </a>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="feed-box text-center">
+                                <section class="card no-padding">
+                                    <div class="card-body">
+                                        <div class="corner-ribon blue-ribon">
+                                            <p class="tag_text">Partner</p>
+                                        </div>
+                                        <a href="https://nhm.gov.in/" target="_blank">
+                                            <img class="align-self-center rounded-circle mr-3" alt="" src="{% static 'home/images/logos/nhm.png'%}">
+                                        </a>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="feed-box text-center">
+                                <section class="card no-padding">
+                                    <div class="card-body">
+                                        <div class="corner-ribon blue-ribon">
+                                            <p class="tag_text">Partner</p>
+                                        </div>
+                                        <a href="https://tsuprogram.com/" target="_blank">
+                                            <img class="align-self-center rounded-circle mr-3"  alt="" src="{% static 'home/images/logos/up-tsu.png'%}">
+                                        </a>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="feed-box text-center">
+                                <section class="card no-padding">
+                                    <div class="card-body">
+                                        <div class="corner-ribon blue-ribon">
+                                            <p class="tag_text">Partner</p>
+                                        </div>
+                                        <a href="https://nagalandhealthproject.org/" target="_blank">
+                                            <img class="align-self-center rounded-circle mr-3"  alt="" src="{% static 'home/images/logos/nhp.jpg'%}">
+                                        </a>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="container footer_on_mobile">
+            <div class="row">
+                <div class="col-md-3">
+                    <p>T-Analytica ({{version}}) | <span id="contributors" data-toggle="modal" data-target="#contributors">Contributors</span></p>
+                </div>
+                <div class="col-md-6">
+
+                </div>
+                <div class="col-md-3 copyright_txt">
+                    <p class="copyright_txt">Copyright &copy;{% now "Y" %} <!--<a target="_blank" href="https://www.tattvafoundation.org/ ">Tattva Foundation</a> --></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+
+
+        <script src="{% static 'home/js/three.r92.min.js' %}"></script>
+        <script src="{% static 'home/js/vanta.rings.min.js' %}"></script>
+        <script>
+        VANTA.RINGS({
+            el: ".wm"
+        })
+        </script>
+
+
+    <script>
+    
+    function login_handler(data)
+    {
+        console.log(data)
+        if (data.user) {
+            x = `<div class="sufee-alert alert with-close alert-success alert-dismissible fade show">
+                                    <span class="badge badge-pill badge-success">Success</span>
+                                    Welcome Back <span class="text-capitalize">`+ data.user + `</span>!
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                </div>`;
+            jQuery(".modal-body").html(x);
+            
+            if(data.profile === "asha")
+                setTimeout(function(){ window.location = "{%url 'analytics' profile='asha'%}"; }, 1000);
+            else if(data.profile === "committee")
+                setTimeout(function(){ window.location = "{%url 'analytics' profile='committees'%}"; }, 1000);
+            else
+                setTimeout(function(){ window.location = "{% url 'survey_analytics' survey_name='uttar_pradesh_nfhs_4' %}"; }, 1000);
+                                
+    
+        }
+        else {
+            x = `<div id="error_msg" class="sufee-alert alert with-close alert-danger alert-dismissible fade show">
+                                    <span class="badge badge-pill badge-danger">Failed</span>
+                                    Invalid Credentials!
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                </div>`;
+            jQuery("#pills-signin").prepend(x);
+        }
+    }
+
+    function signup_handler(data)
+    {
+        if (data.status === "Success") {
+            alert("Registration Completed");
+        }
+        else if(data.status === "Error") {
+            // console.log(data.error)
+            jQuery.each(data.error, function(feild, message_set) {
+                jQuery("#pills-signup #id_"+feild).css('border-color', 'red');
+                // jQuery("#pills-signup #id_"+feild).after('<small>'+ message_set[0] +'</small>');
+                jQuery("#pills-signup #id_"+feild).attr('rel',"txtTooltip");
+                jQuery("#pills-signup #id_"+feild).attr('title',message_set[0]);
+                jQuery("#pills-signup #id_"+feild).attr('data-toggle',"tooltip");
+                jQuery("#pills-signup #id_"+feild).attr('data-placement',"bottom");
+            })
+        }
+    }
+
+    function performa_form_action(e) {
+        jQuery("#error_msg").remove();
+        var form = jQuery(e);
+        jQuery.ajax({
+        url: form.attr("action"),
+        data: form.serialize(),
+        type: form.attr("method"),
+        dataType: 'json',
+        success: function (data) {
+            if(form.attr("action").indexOf("login") != -1){
+                login_handler(data);
+            }
+            else
+            {
+                signup_handler(data);
+            }
+            
+        }
+        });
+        return false;
+    };
+
+
+    jQuery(document).ready(function(){
+        jQuery(".btn-block").click(function(){
+            performa_form_action(jQuery(this).parent());
+        })
+        return false;
+    })
+
+    </script>
+
+
+    {% endblock %}

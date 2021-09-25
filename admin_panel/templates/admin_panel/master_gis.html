@@ -1,0 +1,521 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block header_tab %}
+{%  include "admin_panel/layout/tabs.html" %}
+{% endblock %}
+{% block content %}
+        
+<script src="{%static 'admin_panel/dynamic_filter/js/bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/chosen/chosen.min.css'%}">
+<link rel="stylesheet" href="{%static 'admin_panel/assets/css/style.css'%}">
+
+
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/leaflet/leaflet.css'%}">
+<script src="{%static 'admin_panel/vendors/leaflet/leaflet.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/leaflet/choropleth.js'%}"></script>
+
+
+<!-- <script src="{%static 'admin_panel/vendors/leaflet/leaflet.ajax.min.js'%}"></script> -->
+
+<script src="{%static 'admin_panel/vendors/leaflet/leaflet.ajax.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/leaflet/spin.js'%}"></script>
+<script src="{%static 'admin_panel/vendors/leaflet/leaflet.spin.js'%}"></script>
+
+<!-- <script src="{%static 'admin_panel/vendors/db.js/dist/db.js'%}"></script> -->
+
+
+<script src="{%static 'admin_panel/vendors/dexie.js/dist/dexie.min.js'%}"></script>
+
+
+<script src="https://cdn.rawgit.com/Leaflet/Leaflet.draw/v0.3.0/dist/leaflet.draw-src.js"></script>
+<link rel="stylesheet" href="https://cdn.rawgit.com/Leaflet/Leaflet.draw/v0.3.0/dist/leaflet.draw.css">
+
+
+<style>
+#map { min-height: 90vh; }
+
+</style>
+
+
+
+<style type="text/css">
+    .legend {
+        color: #555;
+        padding: 6px 8px;
+        font: 12px Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        background: white;
+        background: rgba(255,255,255,0.8);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+    }
+    .legend ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        clear: both;
+    }
+    .legend li {
+        display: inline-block;
+        width: 30px;
+        height: 22px;
+    }
+    .legend .min {
+        float: left;
+        padding-bottom: 5px;
+    }
+    .legend .max {
+        float: right;
+    }
+</style>
+
+<div class="animated">
+    <div class="animated fadeIn">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card" id="gis_card">
+                        <div class="card-header text-light bg-dark">
+                            <!-- <strong class="card-title">GIS</strong> -->
+                            <!-- <div class="form-group col-md-3"> -->
+                                <!-- <select data-actions-box="true" id="geo-filter" class="selectpicker form-control" multiple data-live-search="true" data-selected-text-format="count>10">
+                                    
+                                </select> -->
+                            <!-- </div> -->
+                            <div class="form-check-inline form-check">
+                            <form class="form-inline">
+                            
+                                
+                                <div class="form-group">
+                                    <select id="geo_name" class="form-control">
+                                        <option value="">Select Geography</option>
+                                        <optgroup label="Uttar Pradesh">
+                                            <option value="district_name">District</option>
+                                            <option value="block">Block</option>
+                                            <!-- <option value="village">Village</option> -->
+                                        </optgroup>
+                                        <optgroup label="Nagaland">
+                                            <option value="DISTRICT">District</option>
+                                            <!-- <option value="block">Block</option>
+                                            <option value="village">Village</option> -->
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+
+                                
+
+
+                                <div class="form-group">
+                                    <!-- <label for="dashboard-filter">Filter By</label> -->
+                                    <select id="gis-filter" class="gis_data_load form-control">
+                                        {%for key, values in headers_with_type.items %}
+                                            {% if "int" in values or "float" in values %}
+                                                <option value="{{key}}">{{key}}</option>
+                                            {% endif %}
+                                        {%endfor%}
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <select id="value_type" class="gis_data_load form-control">
+                                        <option value="count">Count</option>
+                                        <option value="sum">Sum</option>
+                                        <option value="mean">Average</option>
+                                    </select>
+                                </div>
+
+                                <div class="dropdown explore_button">
+                                    <button class="btn bg-transparent dropdown-toggle theme-toggle text-light" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-expanded="true">
+                                        <i class="fa fa-gears"></i>
+                                    </button>
+                                    <div class="dropdown-menu custom_modification" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 37px, 0px);" aria-labelledby="dropdownMenuButton1" x-placement="bottom-start">
+                                        <div class="dropdown-menu-content">
+                                            <a class="dropdown-item"><b>Cholorpeth Colors</b></a>
+                                            <ul class="sortable list-group text-capitalize ui-sortable">
+                                                <li class="list-group-item ui-sortable-handle">Min <input class="gis_data_load" id="min_color" type="color" value="#FFFDB3"></li>
+                                                <li class="list-group-item ui-sortable-handle">Mid <input class="gis_data_load" id="mid_color" type="color"  value="#FF8B3E"></li>
+                                                <li class="list-group-item ui-sortable-handle">Max <input class="gis_data_load" id="max_color" type="color" value="#AD022F"></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
+                                <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
+                                
+                                
+
+                            </form> 
+                            </div>
+    
+                            <!-- <button id="customizer" class="btn btn-warning btn-sm pull-right">
+                                <i class="fa fa-wrench"></i> Customizer
+                            </button>
+                            <button onclick="prepare_visualize()" id="visualize" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#smallmodal">
+                                <i class="fa fa-magic"></i> Visualize
+                            </button> -->
+                        </div>
+                    <div style="padding: 0px;" class="card-body">
+                        <div id="map"></div>
+                    </div>
+                </div><!-- .card -->
+            </div><!-- .col12 -->
+        </div><!-- .row -->
+    </div><!-- .animated fadeIn -->
+</div><!-- .animated -->
+{% endblock %}
+
+{% block script_content %}
+
+<style>
+    .leaflet-popup-content{
+        width: auto !important;
+
+    }
+</style>
+
+
+<script>
+    // Enable Filter values
+    var worker = "{{worker}}";
+
+
+    var db = new Dexie("GIS_database");
+    db.version(1).stores({
+        gis_db: 'type,geojson'
+    });
+    
+    
+
+
+
+
+    var map = L.map('map').setView([27.200900160835698, 80.82637564922959], 7)
+
+    var chloropleth_legend = false;
+
+    map.scrollWheelZoom.disable();
+    L.control.scale().addTo(map);
+    scroll_to_head(function () {
+        L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map)
+    })
+
+    var layerControl = false;
+
+
+    if(layerControl === false) {
+        layerControl = L.control.layers().addTo(map);
+    }
+
+    var drawnItems = new L.FeatureGroup();
+     map.addLayer(drawnItems);
+     var drawControl = new L.Control.Draw({
+         edit: {
+            featureGroup: drawnItems
+         }
+     });
+     map.addControl(drawControl);
+
+     
+map.on('draw:created', function (event) {
+    var layer = event.layer,
+      feature = layer.feature = layer.feature || {};
+
+    feature.type = feature.type || "Feature";
+    var props = feature.properties = feature.properties || {};
+    props.desc = null;
+    props.image = null;
+    drawnItems.addLayer(layer);
+    addPopup(layer);
+});
+
+function addPopup(layer) {
+  var content = document.createElement("textarea");
+    content.addEventListener("keyup", function () {
+      layer.feature.properties.desc = content.value;
+    });
+    layer.on("popupopen", function () {
+      content.value = layer.feature.properties.desc;
+      content.focus();
+    });
+    layer.bindPopup(content).openPopup();
+}
+
+    function generate_choropleth(geojson, valueProperty='censuscode')
+    {
+        jQuery('#geo-filter').empty();
+
+        if(chloropleth_legend)
+            chloropleth_legend.remove();
+
+        var choroplethLayer =  L.choropleth((geojson), {
+            valueProperty: valueProperty,
+            scale: [jQuery("#min_color").val(), jQuery("#mid_color").val(),  jQuery("#max_color").val()],
+            steps: 7,
+            mode: 'q', // q for quantile, e for equidistant, k for k-means
+            style: {
+            color: '#fff',
+            weight: 2,
+            fillOpacity: 0.7
+            },
+            onEachFeature: function (feature, layer) {
+                
+                jQuery('#geo-filter').append(new Option(feature.properties.district, feature.properties.censuscode))
+                
+                basic_detail = `
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                        `;
+
+
+                info = basic_detail + `
+                        <tr> <td><b>` + valueProperty + '</b></td><td>' + feature.properties[valueProperty]  +`</td> </tr></tbody> </table>
+                        `;
+
+
+                jQuery.each(feature.properties, function (attr, value) {
+                    basic_detail += '<tr> <td><b>' + attr + '</b></td><td>' + value + '</td> </tr>';
+                })
+                basic_detail += '</tbody> </table>'
+
+
+                poopup = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Details</h4>
+                            </div>
+                            <div class="">
+                                <div class="default-tab">
+                                    <nav>
+                                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                            <a style="display: flex;" class="nav-item nav-link active show" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Info</a>
+                                            <a style="display: flex;" class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Basic</a>
+                                            <a style="display: flex;" class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Geo</a>
+                                        </div>
+                                    </nav>
+                                    <div class="tab-content pl-3 pt-2" id="nav-tabContent" style="padding: 0px !important;">
+                                        <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                                            ` + info + `
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                                            ` + basic_detail +` 
+                                        </div>
+                                        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                                            <p>Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache cliche tempor, williamsburg carles vegan helvetica. Reprehenderit.</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        `;
+
+
+                
+
+                // poopup += `
+                // <ul class="nav nav-pills" role="tablist">
+                //     <li class="nav-item">
+                //     <a class="nav-link" data-toggle="pill" href="#home">Detail</a>
+                //     </li>
+                //     <li class="nav-item">
+                //     <a class="nav-link active" data-toggle="pill" href="#menu1">Info</a>
+                //     </li>
+                //     <!--<li class="nav-item">
+                //     <a class="nav-link" data-toggle="pill" href="#menu2">Geo Info</a>
+                //     </li> -->
+                // </ul>
+                // `
+                
+                layer.bindPopup(poopup)
+
+                if(false)
+                {
+                    layer.on({
+                            dblclick: zoomToFeature
+                        });
+                }
+            }
+        })
+
+        
+        jQuery.each(layerControl._layers, function(idx, lay){
+            lay.layer.remove();
+        })
+
+        choroplethLayer.addTo(map)
+        
+
+        // map.flyTo(Object.values(choroplethLayer.getBounds().getCenter()), 7)
+
+        map.flyToBounds(choroplethLayer.getBounds());
+
+        layerControl.addOverlay(choroplethLayer, (valueProperty ));
+
+        
+        chloropleth_legend = L.control({ position: 'bottomright' });
+        chloropleth_legend.onAdd = function (chloropleth_layer) {
+            var div = L.DomUtil.create('div', 'info legend')
+            var limits = choroplethLayer.options.limits
+            var colors = choroplethLayer.options.colors
+            var labels = []
+            
+            div.innerHTML = '<span id="map_reset" class="ti-reload" style=" display:none; font-size: 34px; position: absolute;top: 1px;left: -55px;background: rgba(255,255,255,0.8);padding: 10px;"></span> <div class="labels"><div class="min">' + limits[0] + '</div> \
+                    <div class="max">' + limits[limits.length - 1] + '</div></div>'
+
+            limits.forEach(function (limit, index) {
+                console.log(limit, index)
+                labels.push('<li style="background-color: ' + colors[index] + '"></li>')
+            })
+            div.innerHTML += '<ul>' + labels.join('') + '</ul>'
+            return div
+        }
+        chloropleth_legend.addTo(map)
+
+        
+
+        console.log("Layed Added")
+        jQuery('#geo-filter').selectpicker('refresh')
+    }
+
+    function retrive_geojson(geo_file)
+    {
+        return jQuery.ajax({
+            url: "{%url 'get_geojson' profile=profile%}",
+            async: false,
+            data: {geo_file:geo_file},
+            success: function(response){
+                db.gis_db.put({type: geo_file, geojson: response}).then (function(){
+                    return db.gis_db.get(geo_file);
+                }).then(function (one_data) {
+                    console.log("Data Stored in Index DB")
+                    // alert ("district has geojson " + one_data.geojson);
+                }).catch(function(error) {
+                    console.log("Unable to Store Data in Index DB")
+                    // alert ("Ooops: " + error);
+                });
+
+                return response
+            }
+        });
+    }
+
+
+
+
+    var frame_name = "{{profile}}";
+    var worker = "{{statistics.worker}}";
+    var master_datatable_ajax_url = "{% url 'master_record_ajax' profile=profile %}";
+    var headers_with_type = false;
+    function generate_chart_data_ajax(properties)
+    {
+        return jQuery.ajax({
+            url: "{% url 'generate_chart_data' profile=profile %}",
+            type: 'GET',
+            data: properties,
+            dataType: 'json',
+            success: function (data) {
+            },
+            error: function (data) {
+                console.log("Error");
+                console.log(data);
+            }
+        });
+    }
+
+
+    function change_state(state='disabled')
+    {
+        jQuery("#gis-filter").prop('disabled', state);
+        jQuery("#value_type").prop('disabled', state);
+        jQuery("#dropdownMenuButton1").prop('disabled', state);
+        return false
+    }
+
+    jQuery(document).ready(function(){
+        change_state();
+        jQuery('#geo_name').on('change', function ()
+        {   
+            if(!this.value)
+            {
+                return change_state()
+            }
+            change_state(false);
+            var label = jQuery(this.options[this.selectedIndex]).closest('optgroup').prop('label');
+            let geojson_file = (label.toLowerCase() + "_" + this.value).replace(/ /g,"_");
+            console.log(geojson_file)
+
+            db.gis_db.get(geojson_file).then(function (response){
+                console.log(response)
+                if(response)
+                {
+                    console.log("no need ajax")
+                    response = (response.geojson)
+                }
+                else
+                {
+                    console.log("need ajax")
+                    response = retrive_geojson(geojson_file).responseJSON
+                    console.log(response)
+                }
+                generate_choropleth(response) 
+            })
+        });
+
+
+        jQuery(".gis_data_load").on('change', function ()
+        {
+            
+            // let geo_name = "DISTRICT";// jQuery("#geo_name").val()+"_name";
+            let geo_name = jQuery("#geo_name").val()
+            let head     = jQuery('#gis-filter').val();
+            let opration = jQuery('#value_type').val();
+            
+            properties = {group_by: [geo_name], head: [head], data_type: [opration] };
+            // generate_chart_data_ajax(properties)
+            // console.log(properties)
+            jQuery.when(generate_chart_data_ajax(properties)).done(function(response){
+                // console.log(response)
+                let info = {}
+                let key = response[geo_name]
+                let val = response[opration+"_of_"+head]
+                for (var i in key) {
+                    info[key[i].toLowerCase()] = val[i]
+                }
+                console.log(info)
+
+                let x = layerControl._layers[0].layer.toGeoJSON();
+                jQuery.each(x.features, function(idx, record){ 
+                    let key = x.features[idx].properties.district.toLowerCase();
+                    x.features[idx].properties[head] = info[key]
+                    // console.log(key);
+                })
+
+                console.log(x)
+
+                generate_choropleth(x, head)
+            })
+            
+        })
+
+        
+
+
+
+    })
+
+</script>
+{% endblock %}

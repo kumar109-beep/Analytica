@@ -1,0 +1,32 @@
+{% for user in users %}
+{% load permission_tags %}
+{% load admin_panel_custom_tags %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ user.username }}</td>
+    <td>{{ user.email }}</td>
+    <td>{{ user.first_name }}</td>
+    <td>{{ user.last_name }}</td>
+    <td>{{ user|get_role }}</td>
+    <td class="action_buttons">
+      <p data-placement="top" data-toggle="tooltip" title="Edit">
+        <button type="button" class="btn btn-warning btn-sm js-update-user"
+                data-url="{% url 'user_update' user.id %}" data-target="#edit">
+                <i class="fa fa-edit"></i>
+        </button>
+      </p>
+    </td>
+    <td class="action_buttons">
+      <p data-placement="top" data-toggle="tooltip" title="Delete">
+        <button type="button" class="btn btn-danger btn-sm js-delete-user"
+                data-url="{% url 'user_delete' user.id %}" data-target="#delete">
+                <i class="fa fa-trash-o"></i>
+        </button>
+      </p>
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="8" class="text-center bg-warning">No Record Available</td>
+  </tr>
+{% endfor %}

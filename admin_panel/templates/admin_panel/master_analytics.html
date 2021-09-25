@@ -1,0 +1,995 @@
+{% extends 'admin_panel/layout/base.html' %}
+{% load static %}
+
+{% load admin_panel_custom_tags %}
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block header_tab %}
+{%  include "admin_panel/layout/tabs.html" %}
+{% endblock %}
+
+{% block content %}
+
+
+
+{% endblock %}
+{% block script_content %}
+
+<style>
+/* Menu */
+
+.menu {
+    position: absolute;
+    width: 200px;
+    padding: 2px;
+    margin: 0;
+    border: 1px solid #bbb;
+    background: #eee;
+    background: -webkit-linear-gradient(to bottom, #fff 0%, #e5e5e5 100px, #e5e5e5 100%);
+    background: linear-gradient(to bottom, #fff 0%, #e5e5e5 100px, #e5e5e5 100%);
+    z-index: 100;
+    border-radius: 3px;
+    box-shadow: 1px 1px 4px rgba(0,0,0,.2);
+    opacity: 0;
+    -webkit-transform: translate(0, 15px) scale(.95);
+    transform: translate(0, 15px) scale(.95);
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    pointer-events: none;
+}
+
+.menu-item {
+    display: block;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.menu-btn { 
+    display: block;
+    color: #444;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    padding: 6px 8px;
+    border-radius: 3px;
+}
+
+button.menu-btn {
+    background: none;
+    line-height: normal;
+    overflow: visible;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    width: 100%;
+    text-align: left;
+}
+
+a.menu-btn {
+    outline: 0 none;
+    text-decoration: none;
+}
+
+.menu-text {
+    margin-left: 25px;
+}
+
+.menu-btn .fa {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.menu-item:hover > .menu-btn { 
+    color: #fff; 
+    outline: none; 
+    background-color: #2E3940;
+    background: -webkit-linear-gradient(to bottom, #5D6D79, #2E3940);
+    background: linear-gradient(to bottom, #5D6D79, #2E3940);
+    border: 1px solid #2E3940;
+}
+
+.menu-item-disabled {
+    opacity: .5;
+    pointer-events: none;
+}
+
+.menu-item-disabled .menu-btn {
+    cursor: default;
+}
+
+.menu-separator {
+    display:block;
+    margin: 7px 5px;
+    height:1px;
+    border-bottom: 1px solid #fff;
+    background-color: #aaa;
+}
+
+.menu-item-submenu::after {
+    content: "";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-left-color: #808080; 
+}
+
+.menu-item-submenu:hover::after {
+    border-left-color: #fff;
+}
+
+.menu .menu {
+    top: 4px;
+    left: 99%;
+}
+
+.menu-show,
+.menu-item:hover > .menu {
+    opacity: 1;
+    -webkit-transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scale(1);
+    pointer-events: auto;
+}
+
+.menu-item:hover > .menu {
+    -webkit-transition-delay: 300ms;
+    transition-delay: 300ms;
+}
+
+</style>
+
+<script>
+
+
+
+
+    function chart_table_view_toggle(evnt)
+    {
+        // console.log(evnt.className)
+        if (evnt.className == "fa fa-table")
+        {
+            evnt.className = "fa fa-bar-chart";
+
+            let TABLE_JSON = []
+            jQuery.each(myChart.data.labels, function(idx, label){
+                let one_row = {}
+                one_row.label = label;
+                jQuery.each(myChart.data.datasets, function(idx_dataset, dataset){
+                    one_row[dataset.label] = dataset.data[idx]
+                })
+                TABLE_JSON.push(one_row)
+            })
+
+            let datatable_cols = []
+            jQuery.each(TABLE_JSON[0], function(key, val){
+
+                k = key.replace(".", "\\.")
+                datatable_cols.push({data: k, title: key})
+            })
+            
+            jQuery("#intractive_chart_table_area").html(`<table class="table table-striped table-bordered table-hover text-center" id="intractive_chart_table_view"></table>`)
+
+            jQuery('#intractive_chart_table_view').DataTable( { 
+                "autoWidth": false,
+                responsive: true,
+                "aaData": TABLE_JSON ,
+                "aoColumns": datatable_cols
+            });
+
+            jQuery("#intractive_chart_table_area").show('slow')
+            jQuery("#intractive_chart").hide('slow')
+        }
+        else
+        {
+            evnt.className = "fa fa-table";
+            jQuery("#intractive_chart").show('slow')
+            jQuery('#intractive_chart_table_area').hide('slow')
+            
+        }
+        
+    }
+
+
+    var can_use_bcpm_status = true;
+    var can_use_moic_status = true;
+    var can_use_bam_status = true;
+    </script>
+    <link rel="stylesheet" type="text/css" href="{%static 'admin_panel/assets/css/analytics.css' %}">
+    <div class="modal fade" id="largeModal" tabindex="-1" role="dialog" aria-labelledby="largeModalLabel" aria-hidden="true">
+        <div style="max-width: 80%;;" class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-capitalize" id="largeModalLabel">Detailed Chart</h5>
+                    
+                    <button type="button" class="close">
+                        <i onclick='chart_table_view_toggle(this)' class="fa fa-table"></i> |
+                        <i onclick='jQuery("#customizer_panel").slideToggle("slow");' class="fa fa-gears"></i> |
+                        <i onclick='jQuery("#about_the_chart").slideToggle("slow");' class="fa fa-info-circle"></i> |
+                        <i onclick='jQuery("#largeModal").modal("hide");' class="fa fa-times"></i>
+                    </button>
+
+                    <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        <span aria-hidden="true">anish</span>
+                    </button> -->
+    
+    
+                    
+                </div>
+                <div class="modal-body">
+
+                    <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                        <div id="data_table_section" class="card-body">
+                            <button onclick="hidelist_chart();" type="button" class="btn btn-danger">
+                                <i class="fa fa-chevron-circle-left"></i>
+                            </button>
+                            <kbd id="query_statement">ALL DISTRICT where DISTRICT == MON</kbd>
+                            <div id="record_table"></div>
+                        </div>
+                        <div id="chart_rendring_area">
+
+                            <!-- <button onclick='chart_table_view_toggle(this)' type="button" class="btn btn-success" style=" position: absolute; z-index: 9999;">
+                                <i class="fa fa-table"></i>
+                            </button> -->
+
+                            <!-- <button onclick='jQuery("#customizer_panel").slideToggle("slow");' type="button" class="btn btn-success" style="position: absolute;right: 17px;z-index: 9999;">
+                                <i class="fa fa-gears"></i>
+                            </button> -->
+                            <button onclick="back_chart()" id="back_button" type="button" class="btn btn-danger" style="display: none; position: absolute;right: 62px; z-index: 9999;">
+                                <i class="fa fa-chevron-circle-left"></i>
+                            </button>
+                            <div class="card" id="customizer_panel" style="display:none;" onmouseleave='/*jQuery(this).hide("slow"); */'>
+                                <div class="card-header">
+                                    <strong>Advance </strong> Options
+                                </div>
+                                <div class="card-body card-block">
+                                    <div class="col-sm-2 form-control">
+                                        Stacking
+                                        <label class="switch switch-text switch-primary switch-pill">
+                                            <input type="checkbox" id="stack_toggle" class="switch-input">
+                                            <span data-on="On" data-off="Off" class="switch-label"></span>
+                                            <span class="switch-handle"></span>
+                                        </label>
+                                    </div>
+    
+                                    <div class="col-sm-2">
+                                        <select data-actions-box="true" id="legend_select" class="selectpicker form-control" multiple data-live-search="true" data-selected-text-format="count>10">
+                                            
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <!-- <select id="chart_select" class="text-center form-control-sm form-control"> -->
+                                        <select id="chart_select" class="selectpicker form-control">
+                                            <option value="">Select Chart</option>
+                                            <option value="bar"> Bar </option>
+                                            <option value="bubble"> Bubble </option>
+                                            <option value="doughnut"> Doughnut </option>
+                                            <!-- <option value="horizontalBar"> HorizontalBar </option> -->
+                                            <option value="line"> Line </option>
+                                            <option value="polarArea"> PolarArea </option>
+                                            <option value="pie"> Pie </option>
+                                            <option value="radar"> Radar </option>
+                                            <!-- <option value="scatter"> Scatter </option> -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-sm-6 form-control">
+                                        Labels
+                                        <label class="switch switch-text switch-success switch-pill">
+                                            <input type="checkbox" id="onchart_label" class="switch-input" />
+                                            <span data-on="On" data-off="Off" class="switch-label"></span>
+                                            <span class="switch-handle"></span>
+                                        </label>
+                                        <label class="chart_label_type"> <input type="radio" name="label" value="value" checked /> Value </label>
+                                        <label class="chart_label_type"> <input type="radio" name="label" value="percentage_o" /> Percentage (Overall) </label>
+                                        <label class="chart_label_type"> <input type="radio" name="label" value="percentage_s" /> Percentage (Self) </label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <hr>
+                                    </div>
+                                    
+                                    <!-- <div class="col-sm-12"> -->
+                                        
+                                        <div class="col-sm-2 form-control">
+                                            <label>Attributes</label>
+                                        </div>
+                                        <div class="col-sm-10 form-control" style="height: auto;">
+                                            <ul class="my_ul" id="chart_attribute_set">
+                                            </ul>
+                                        </div>
+    
+                                        <div class="col-sm-2 form-control">
+                                            <label>Sort Order</label>
+                                        </div>
+                                        <div class="col-sm-10 form-control" style="height: auto;">
+                                            <ul class="my_ul" id="chart_attribute_set_order">
+                                            </ul>
+                                        </div>
+    
+                                        <script>
+                                            // jQuery("#chart_attribute_set_order").bind("change", function() { alert('Hello, world!'); });
+                                        </script>
+    
+                                    <!-- </div> -->
+    
+                                    <!-- <div class="col-sm-1">
+                                        <button onclick="set_chart_sort()" type="button" class="btn btn-primary btn-lg btn-block">Go</button>
+                                    </div> -->
+                                    
+                                    <style>
+                                        .my_ul {
+                                            list-style-type: none;
+                                            min-height: 40px;
+                                        }
+                                        .my_li {
+                                            float: left;
+                                            font-weight: bold; /* Making font bold */
+                                            border-radius: 20px; /* Making border radius */
+                                            width: auto; /* Making auto-sizable width */
+                                            height: auto; /* Making auto-sizable height */
+                                            padding: 0px 15px 0px 15px;
+                                            border: 2px solid;
+                                        }
+                                    </style>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-success" style="display: None;" role="alert" id="about_the_chart">
+                                <h4 class="alert-heading">About this Chart!</h4>
+                                <p>Aww yeah, you successfully read this important alert message. This example text is going to run a bit longer so that you can see how spacing within an alert works with this kind of content.</p>
+                                <hr>
+                                <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p>
+                            </div>
+
+                            <canvas class="animate-bottom" id="intractive_chart">
+                            </canvas>
+
+                            <div id="intractive_chart_table_area">
+                            </div>
+                        </div>
+                        
+
+                        
+                        <!-- <ul id="contextMenu" style="display:none;">
+                            <li id="menu-item-drill-down" class="menu-item" function="drill_down()">Drill Down</li>
+                            <li id="menu-item-record" class="menu-item" function="report()">Show List</li>
+                        </ul> -->
+                    <ul id="contextMenu" class="menu">
+                        <li class="menu-item" id="drill_down_menu">
+                            <a href="#" class="menu-btn">
+                                <i class="fa fa-sitemap"></i>
+                                <span class="menu-text">Drill-down</span>
+                            </a>
+                        </li>
+                        <li class="menu-item menu-item-disabled">
+                            <button type="button" class="menu-btn">
+                                <span class="menu-text">Open in New Window</span>
+                            </button>
+                        </li>
+                        <li class="menu-separator"></li>
+                        <!-- <li class="menu-item">
+                            <button type="button" class="menu-btn">
+                                <i class="fa fa-reply"></i>
+                                <span class="menu-text">Reply</span>
+                            </button>
+                        </li>
+                        <li class="menu-item">
+                            <button type="button" class="menu-btn">
+                                <i class="fa fa-star"></i>
+                                <span class="menu-text">Favorite</span>
+                            </button>
+                        </li> -->
+                        <li class="menu-item menu-item-submenu">
+                            <button type="button" class="menu-btn">
+                                <i class="fa fa-table"></i>
+                                <span class="menu-text">Show List</span>
+                            </button>
+                            <ul class="menu" id="data_list_menu">
+                                
+                            </ul>
+                        </li>
+                        <li class="menu-separator"></li>
+                        <li class="menu-item" onclick="save_chart_images()">
+                            <button type="button" class="menu-btn">
+                                <i class="fa fa-download"></i>
+                                <span class="menu-text">Save</span>
+                            </button>
+                        </li>
+                        <!-- <li class="menu-item">
+                            <button type="button" class="menu-btn">
+                                <i class="fa fa-edit"></i>
+                                <span class="menu-text">Rename</span>
+                            </button>
+                        </li>
+                        <li class="menu-item">
+                            <button type="button" class="menu-btn">
+                                <i class="fa fa-trash"></i>
+                                <span class="menu-text">Delete</span>
+                            </button>
+                        </li> -->
+                    </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Confirm</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- <script src="{%static 'admin_panel/vendors/chart.js/dist/Chart.bundle.min.js' %}"></script> -->
+
+<script src="{%static 'admin_panel/vendors/chart_js/js/Chart.min.js' %}"></script>
+<link rel="stylesheet" href="{%static 'admin_panel/vendors/chart_js/css/Chart.min.css' %}">
+
+<!-- <script src="https://www.chartjs.org/dist/2.9.3/Chart.min.js"></script> -->
+<!-- <link rel="stylesheet" href="https://www.chartjs.org/dist/2.9.3/Chart.min.css"> -->
+<script src="{%static 'admin_panel/vendors/chart.js/plugins/js/chartjs-plugin-datalabels.js' %}"></script>
+<script src="{%static 'admin_panel/vendors/chart.js/plugins/js/chartjs-plugin-annotation.js' %}"></script>
+<!-- <script src="{%static 'admin_panel/vendors/chart.js/plugins/js/chartjs-plugin-sort.js' %}"></script> -->
+<!-- <script src="https://gmousse.github.io/dataframe-js/dist/dataframe.min.js"></script> -->
+
+<script src="{%static 'admin_panel/vendors/filesaver/filesaver.js' %}"></script>
+<!-- <script src="http://cdn.jsdelivr.net/g/filesaver.js"></script> -->
+
+<script src="{%static 'admin_panel/assets/js/widgets.js' %}"></script>
+
+
+<script>
+    jQuery('#legend_select').on('changed.bs.select', function (event, clickedIndex, newValue, oldValue) {
+        // previous = oldValue;
+        availbale_vals = jQuery(this).val();
+        console.log(jQuery(this).val())
+        console.log(clickedIndex)
+        console.log(newValue)
+        console.log(oldValue)
+        if(newValue == null)
+        {
+            if(availbale_vals == null)
+            {
+                myChart.legend.legendItems.forEach(function(ds, idx) {
+                    myChart.getDatasetMeta(idx).hidden=true;
+                });
+            }
+            else
+            {
+                jQuery.each(availbale_vals, function(k, v){
+                    myChart.getDatasetMeta(parseInt(v)).hidden=null;
+                })
+            }
+        }
+        else if(newValue)
+        {
+            myChart.getDatasetMeta(clickedIndex).hidden=null;
+        }
+        else
+        {
+            myChart.getDatasetMeta(clickedIndex).hidden=true;
+        }
+        myChart.update();
+    });
+
+</script>
+
+
+
+
+
+
+
+
+<script>
+    // var wc = eval("{{widget_charts|safe}}");
+    var frame_name = "{{profile}}";
+    // HOld the rendring of charts in specific frame js file
+    var CHART_CONTROL = {};
+    var worker = "{{statistics.worker}}";
+    var master_datatable_ajax_url = "{% url 'master_record_ajax' profile=profile %}";
+    var headers_with_type = false;
+    var hidden_fields = []
+    function generate_chart_data_ajax(properties)
+    {
+        return jQuery.ajax({
+            url: "{% url 'generate_chart_data' profile=profile %}",
+            type: 'GET',
+            data: properties,
+            dataType: 'json',
+            success: function (data) {
+            },
+            error: function (data) {
+                console.log("Error");
+                console.log(data);
+            }
+        });
+    }
+
+    // Return unique attribute of columns
+    function get_column_uniq_attr(column_name) {  
+        return jQuery.ajax({
+            url: "{% url 'get_head_vals' %}",
+            dataType: 'json',
+            data: {head:column_name, frame_name:frame_name},
+            success: function(data) {
+            }
+        });
+    }
+
+    function init()
+    {
+        jQuery.ajax({
+            type: 'post',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success:function(data) {
+                try
+                {
+                    // alert((data.last_synced))
+                    headers_with_type = data.headers_with_type;
+                    jQuery("#last_synced").text((data.last_synced));
+                    frame_name = data.profile;
+                    worker = data.profile.split("_")[0];
+                    draw_Cards(eval(data.widget_charts), eval(data.base_drill));
+                    scroll_to_head(load_widget_chart);
+                    jQuery( function() {
+                        jQuery( ".sortable" ).sortable();
+                        jQuery( ".sortable" ).disableSelection();
+                    } );
+                    startCounter();
+                }
+                catch(err)
+                {
+                    jQuery('html').html(data)
+                }
+            }
+        });
+    }
+
+    function draw_Cards(card_conf_set, base_drill)
+    {   
+        jQuery(".mt-3").html("");
+        jQuery.each(card_conf_set, function(id, card_conf){
+            jQuery(".mt-3").append(genCard(card_conf, base_drill));
+        });
+    }
+
+    function draw_dash_chart(properties, canvasid, chart_type, sanitizer_function, legend_name, fill_type)
+    {   
+        if(! jQuery("#"+canvasid).length)
+        {
+          return 0;
+        }
+
+        var local_storage_key = frame_name + "_" + canvasid;
+        if(frame_name.indexOf("payment") != -1)
+        {
+            // local_storage_key = local_storage_key + Cookies.get('selected_payment_session')
+            local_storage_key = local_storage_key + Cookies.get('session_start_date') + Cookies.get('session_end_date')
+        }
+        var chart_data = localStorage.getItem(local_storage_key);
+        if(chart_data)
+        {   
+          chart_data = JSON.parse(chart_data);
+          widgetChart(chart_type, chart_data, canvasid, legend_name, fill_type)
+        }
+        else
+        {
+            jQuery.when(generate_chart_data_ajax(properties)).done(function(data){
+              if(sanitizer_function)
+              {
+                result = eval(sanitizer_function)(data, properties.group_by[0]);
+              }
+              else
+              {
+                result = data;
+              }
+                widgetChart(chart_type, result, canvasid, legend_name, fill_type);
+                localStorage.setItem(local_storage_key, JSON.stringify(result), fill_type);
+            });
+        }
+        
+    }
+
+
+    function load_widget_chart()
+    {
+        properties = { sort_by: "district_name", group_by: ["district_name"], head: ["district_name"], data_type: ["size"], summray:"random:20" };
+        draw_dash_chart(properties, "worker_count", "horizontalBar", "sanitize_worker_count_chart_data" , "No. of "+frame_name, false);
+
+        properties = { sort_by: "caste", group_by: ["caste"], head: ["caste"], data_type: ["size"] };
+        draw_dash_chart(properties, "worker_caste", "radar", null, "No. of "+frame_name, "start");
+
+        properties = { group_by: ["block_name"], head: ["population", frame_name+"_id"], data_type: ["sum", "size"], summray:"random:13", };
+        draw_dash_chart(properties, "asha_on_population", "line", "sanitize_required_vs_available_worker_chart_data", "No. of "+frame_name, "origin");
+        
+        properties = { group_by: ["age_category"], head: ["age_category"], data_type: ["size"] };
+        draw_dash_chart(properties, "age_distribution", "radar", "sanitize_age_distribution_main_chart_data", "No. of "+frame_name, "origin");
+
+        properties = { group_by: ["block_name"], head: ["population", frame_name+"_id"], data_type: ["sum", "size"], summray:"random:20", };
+        draw_dash_chart(properties, "asha_avarage_distribution", "line", "sanitize_population_per_worker_chart_data","No. of "+frame_name, false);
+
+        properties = {group_by: ["mobile_status"], head: ["mobile_status"], data_type: ["size"]};
+        draw_dash_chart(properties, "available_mobile", "pie", null, "No. of "+frame_name, false);
+
+        properties = { group_by: ["working_since"], head: ["working_since"], data_type: ["size"], sort_by:"working_since", summray:"random:12" };
+        draw_dash_chart(properties, "asha_engagement", "line", null, "No. of "+frame_name, "end");
+
+        properties = { group_by: ["educational_qualification"], head: ["educational_qualification"], data_type: ["size"] };
+        draw_dash_chart(properties, "educational_overview", "doughnut", null, "No. of "+frame_name, false);
+
+        properties = { sort_by:"population_category", head: ["population_category"], group_by:["population_category"], summray:"last:20", data_type: ["size"] };
+        draw_dash_chart(properties, "worker_vs_population", "line", null, "No. of "+frame_name, "end");
+
+        properties = { sort_by:"number_of_asha", head: ["number_of_asha"], group_by:["number_of_asha"], summray:"last:20", data_type: ["size"] },
+        draw_dash_chart(properties, "asha_per_worker", "line", "sanitize_render_asha_per_sangini_chart_data", "No. of "+frame_name, false);
+
+        properties = {group_by: ["job_type"], head: ["job_type"], data_type: ["size"]};
+        draw_dash_chart(properties, "job_type", "doughnut", null, "No. of "+frame_name, false);
+
+        properties = {group_by: ["district_name"], head: ["anm_id"], data_type: ["size"],summray:"last:12", filters:JSON.stringify([{attr: "sub_center_name", operator:"==", value:"At PHC"}])};
+        draw_dash_chart(properties, "anm_at_phc", "bar", null, "No. of "+frame_name, false);
+
+        properties = {group_by: ["district_name"], head: ["anm_id"], data_type: ["size"],summray:"last:9", filters:JSON.stringify([{attr: "sub_center_name", operator:"==", value:"At CHC"}])};
+        draw_dash_chart(properties, "anm_at_chc", "polarArea", null, "No. of "+frame_name, false);
+
+        // Asha Payment
+        
+        properties = {group_by: ["district_name"], head: ["subtotal"], data_type: ["sum"], summray:"last:20" };
+        draw_dash_chart(properties, "current_payment", "line", "sanitize_render_current_month_payment_chart_data", "No. of "+frame_name, "end");
+        
+
+        properties = {group_by: ["district_name"], head: [worker+"_id"], data_type: ["size"], summray:"last:20" };
+        draw_dash_chart(properties, "worker_claimed_current", "horizontalBar", null, "No. of "+frame_name, false);
+
+        properties = {group_by: ["district_name"], head: ["subtotal", worker+"_id"], data_type: ["mean", "nunique"], summray:"random:9" };
+        draw_dash_chart(properties, "avg_current_payment", "line", "sanitize_render_avg_current_month_payment_chart_data", "No. of "+frame_name, false);
+
+        properties = {group_by: ["categorized_total"], head: [worker + "_id"], data_type: ["size"], summray:"last:20", sort_by:"categorized_total" };
+        draw_dash_chart(properties, "amount_distribution_in_worker", "radar", "sanitize_render_amount_distribution_in_worker_chart_data", "No. of "+frame_name, "origin");
+
+
+        var frame_type = false
+        if(window.location.href.indexOf("_pre") != -1)
+        {
+            frame_type = "_pre"
+        }
+        properties = {group_by: ["district_name"], head: [worker+"_id"], data_type: ["size"], summray:"random:7", get_data_frame_function : worker+"_not_paid_frame" };
+        draw_dash_chart(properties, "current_not_paid", "polarArea", "sanitize_render_current_month_not_paid_chart_data", "No. of "+frame_name, "origin");
+        
+        
+        special_column_of_list = [];
+        if(worker === "asha")
+        {
+            special_column_of_list = Object.keys(headers_with_type).filter(function(x){ return x.endsWith("_total") })
+            // special_column_of_list = ['aaa_total', 'addpay_total', 'child_total', 'encep_total', 'family_total', 'hrp_total', 'immu_total', 'jsy_total', 'kalajaar_total', 'leprosy_total', 'lymp_total', 'malaria_total', 'mdr_total', 'niddcp_total', 'rksk_total', 'rntcp_total']
+        }
+        else if(worker === "sangini")
+        {
+            special_column_of_list = ["refilling_of_drug_kit", "monitoring_of_asha_payment", "mother/child_death_registration" , "asha_visits", "cluster_meeting"]
+        }
+        data_type = Array(special_column_of_list.length).fill("sum")
+        properties = { group_by: ["district_name"], head: special_column_of_list, data_type: data_type};
+        draw_dash_chart(properties, "head_payment_distribution", "radar", "sanitize_head_payment_ditribution_chart_data", "No. of "+frame_name, "origin");
+
+
+
+
+        var status_val = "Completed";
+        if(!can_use_bcpm_status)
+        {
+            status_val = "Started";
+        }
+        properties = {group_by: ["district_name"], head: ["submit"], data_type: ["size"], filters:JSON.stringify([{attr: "bcpm_status", operator:"==", value:status_val}]) };
+        draw_dash_chart(properties, "bcpm_status", "line", "sanitize_render_current_month_payment_status_chart_data", "No. of "+frame_name, "start");
+
+        var status_val = "Completed";
+        if(!can_use_moic_status)
+        {
+            status_val = "Started";
+        }
+        properties = {group_by: ["district_name"], head: ["approved"], data_type: ["size"], summray:"random:12", filters:JSON.stringify([{attr: "moic_status", operator:"==", value:status_val}]) };
+        draw_dash_chart(properties, "moic_status", "bar", "sanitize_render_current_month_payment_status_chart_data", "No. of "+frame_name, false);
+
+        
+        var status_val = "Completed";
+        if(!can_use_bam_status)
+        {
+            status_val = "Started";
+        }
+        properties = {group_by: ["district_name"], head: ["payment"], data_type: ["size"], summray:"random:13", filters:JSON.stringify([{attr: "bam_status", operator:"==", value:status_val}]) };
+        draw_dash_chart(properties, "bam_status", "line", "sanitize_render_current_month_payment_status_chart_data", "No. of "+frame_name, false);
+
+
+        properties = {group_by: ["district_name"], head: ["bcpm_performance"], data_type: ["size"], summray:"random:12", filters:JSON.stringify([{attr: "bcpm_performance", operator:"==", value:"Excellent"}]) };
+        draw_dash_chart(properties, "bcpm_performance", "radar", null, "No. of "+frame_name, "start");
+
+        properties = {group_by: ["moic_performance"], head: ["moic_performance"], data_type: ["size"]};
+        draw_dash_chart(properties, "moic_performance", "doughnut", null, "No. of "+frame_name, "start");
+
+        properties = {group_by: ["bam_performance"], head: ["bam_performance"], data_type: ["size"]};
+        draw_dash_chart(properties, "bam_performance", "pie", null, "No. of "+frame_name, false);
+
+
+        
+
+        properties = { group_by: ["DISTRICT"], head: ["Population Covered"], data_type: ["sum"] };
+        draw_dash_chart(properties, "nhp_total_committee_population", "line", null, "Total Population", "end");
+
+        properties = { group_by: ["ctype"], head: ["Population Covered"], data_type: ["mean"], summray:"random:13"};
+        draw_dash_chart(properties, "nhp_population_per_committee", "line", null, "No. of "+frame_name, "origin");
+
+
+        properties = { sort_by: "DISTRICT", group_by: ["DISTRICT"], head: ["DISTRICT"], data_type: ["size"], summray:"random:20" };
+        draw_dash_chart(properties, "nhp_total_committee", "horizontalBar", "sanitize_worker_count_chart_data" , "No. of "+frame_name, false);
+
+
+        properties = { group_by: ["Bank Name"], head: ["Bank Name"], data_type: ["size"] };
+        draw_dash_chart(properties, "bank_engagement", "line", null, "No. of "+frame_name, false);
+
+
+        properties = { group_by: ["chairman"], head: ["hash"], data_type: ["size"] };
+        draw_dash_chart(properties, "committee_chairman", "radar", null, "No. of "+frame_name, false);
+
+
+        properties = { group_by: ["co_chairman"], head: ["hash"], data_type: ["size"] };
+        draw_dash_chart(properties, "committee_co_chairman", "doughnut", null, "No. of "+frame_name, false);
+
+        
+        
+
+
+        properties = { group_by: ["ctype"], head: ["ctype"], data_type: ["size"] };
+        draw_dash_chart(properties, "nhp_committee_type", "pie", null, "No. of Bank", false);
+
+        
+        properties = { group_by: ["mou_year"], head: ["mou_year"], data_type: ["size"] };
+        draw_dash_chart(properties, "nhp_committee_enrollment", "bar", null, "No. of "+frame_name, false);
+
+
+        properties = { group_by: ["otg_year"], head: ["OTG Amount"], data_type: ["sum"], summray:"random:13"};
+        draw_dash_chart(properties, "nhp_committee_otg_amount", "polarArea", null, "No. of "+frame_name, "origin");
+        
+
+
+        properties = { sort_by: "DISTRICT", group_by: ["DISTRICT"], head: ["DISTRICT"], data_type: ["size"], summray:"random:20" };
+        draw_dash_chart(properties, "nhp_total_committee_member", "horizontalBar", "sanitize_worker_count_chart_data" , "No. of "+frame_name, false);
+
+        properties = { group_by: ["Educational Qualification"], head: ["Educational Qualification"], data_type: ["size"] };
+        draw_dash_chart(properties, "nhp_education_distribution", "line", null, "No. of "+frame_name, false);
+
+
+        properties = { group_by: ["Sex"], head: ["Sex"], data_type: ["size"] };
+        draw_dash_chart(properties, "sex_distribution", "radar", null, "No. of "+frame_name, false);
+
+
+        properties = { group_by: ["Age"], head: ["Age"], data_type: ["size"], filters:JSON.stringify([{attr: "Age", operator:"!=", value:0}]), summray:"random:20" };
+        draw_dash_chart(properties, "nhp_age_distribution", "bar", null, "No. of "+frame_name, false);
+        
+
+        properties = { group_by: ["Mobile number"], head: ["Mobile number"], data_type: ["size"] };
+        draw_dash_chart(properties, "nhp_invalid_mobile", "doughnut", null, "Invalid", false);
+
+        properties = { group_by: ["Designation"], head: ["Designation"], data_type: ["size"] };
+        draw_dash_chart(properties, "nhp_member_designation", "pie", null, "No. of "+frame_name, false);
+
+
+
+        properties = { sort_by: "current_month", group_by: ["current_month"], head: ["current_month"], data_type: ["size"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_completion", "horizontalBar", null , "No. of Committee", false);
+
+        properties = { sort_by: "current_rbf", group_by: ["current_rbf"], head: ["current_rbf"], data_type: ["size"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_distribution", "pie", null , "No. of Committee", false);
+
+        properties = { sort_by: "current_month", group_by: ["current_month"], head: ["OTG Amount"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_project_amount", "line", null , "Amount Required", "start");
+
+        properties = { sort_by: "current_month", group_by: ["ctype"], head: ["current_rbf"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "late_rbf", "doughnut", null , "Amount Required", "start");
+
+
+
+
+
+        properties = { group_by: ["DISTRICT"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_activity_all", "horizontalBar", null , "Amount", false);
+
+        properties = { group_by: ["DISTRICT"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["sum"], filters:JSON.stringify([{attr: "rbf_state", operator:"==", value:"Ongoing"}]), summray:"random:20" };
+        draw_dash_chart(properties, "rbf_activity_ongoing", "doughnut", null , "Amount", false);
+
+        properties = { group_by: ["DISTRICT"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["sum"], filters:JSON.stringify([{attr: "rbf_state", operator:"==", value:"Completed"}]), summray:"random:20" };
+        draw_dash_chart(properties, "rbf_activity_completed", "bar", null , "Amount", false);
+        
+
+        properties = { group_by: ["RBF Cycle"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "all_activity_by_rbf", "pie", null , "Amount", false);
+
+        properties = { group_by: ["Activity Type"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["sum"], filters:JSON.stringify([{attr: "rbf_state", operator:"==", value:"Ongoing"}]), summray:"random:20" };
+        draw_dash_chart(properties, "ongoing_activity_by_rbf", "radar", null , "Amount", false);
+
+        properties = { group_by: ["RBF Cycle"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["sum"], filters:JSON.stringify([{attr: "rbf_state", operator:"==", value:"Completed"}]), summray:"random:20" };
+        draw_dash_chart(properties, "completed_activity_by_rbf", "line", null , "Amount", false);
+
+
+        properties = { group_by: ["RBF Cycle"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["mean"], summray:"random:20" };
+        draw_dash_chart(properties, "all_activity_mean", "line", null , "Amount", "end", false);
+
+        properties = { group_by: ["Activity Type"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["mean"], filters:JSON.stringify([{attr: "rbf_state", operator:"==", value:"Ongoing"}]), summray:"random:20" };
+        draw_dash_chart(properties, "ongoing_activity_mean", "polarArea", null , "Amount", false);
+
+        properties = { group_by: ["RBF Cycle"], head: ["Activity Estimated funds required to conduct this activity"], data_type: ["mean"], filters:JSON.stringify([{attr: "rbf_state", operator:"==", value:"Completed"}]), summray:"random:20" };
+        draw_dash_chart(properties, "completed_activity_mean", "line", null , "Amount", "start");
+
+
+
+        properties = { group_by: ["Activity Category"], head: ["Six monthly Expenditure (Rs)"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_approve_vs_expense", "horizontalBar", null , properties.head[0], false); 
+        
+
+        properties = { group_by: ["Activity Category"], head: ["Approved Budget"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_approve_activity_based", "pie", null , properties.head[0], false);
+
+
+        properties = { group_by: ["Activity Category"], head: ["Six monthly Expenditure (Rs)"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_expense_activity_based", "line", null , properties.head[0], false);
+        
+
+        properties = { group_by: ["Activity Category"], head: ["Six monthly Expenditure (Rs)"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_approve_vs_expense_activity_based", "radar", null , properties.head[0], false);
+
+        properties = { group_by: ["ctype"], head: ["total_fund_amount_parted"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_totalfund_vs_expense_vs_balance", "bar", null , "Total Fund Amount", false);
+
+
+
+
+        properties = { group_by: ["DISTRICT"], head: ["target_met_percent"], data_type: ["mean"], summray:"random:20" };
+        draw_dash_chart(properties, "indicator_summry", "radar", null , "Amount", false);
+        
+        properties = { group_by: ["DISTRICT"], head: ["indicator_1"], data_type: ["mean"], summray:"random:20" };
+        draw_dash_chart(properties, "all_indicator", "bar", null , "indicators", false);
+
+
+
+        
+
+        properties = { group_by: ["activity_type"], head: ["Quarter 1 Expenditure"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_quarter_1_spent", "pie", null , "Amount", false);
+
+        properties = { group_by: ["Activity Category"], head: ["Quarter 2 Expenditure"], data_type: ["sum"], summray:"random:20" };
+        draw_dash_chart(properties, "rbf_quarter_2_spent", "line", null , "Amount", false);
+
+
+        properties = { group_by: ["Activity Category"], head: ["Six monthly Expenditure (Rs)"], data_type: ["sum"], filters:JSON.stringify([{attr: "activity_type", operator:"==", value:"Not Approved"}]), summray:"random:20" };
+        draw_dash_chart(properties, "not_approve_six_month_expense", "radar", null , "Amount", false);
+
+        properties = { group_by: ["Activity Category"], head: ["Quarter 1 Expenditure"], data_type: ["sum"], filters:JSON.stringify([{attr: "activity_type", operator:"==", value:"Not Approved"}]), summray:"random:20" };
+        draw_dash_chart(properties, "rbf_quarter_1_spent_not_approved", "bar", null , "Amount", false);
+
+        properties = { group_by: ["Activity Category"], head: ["Quarter 2 Expenditure"], data_type: ["sum"], filters:JSON.stringify([{attr: "activity_type", operator:"==", value:"Not Approved"}]), summray:"random:20" };
+        draw_dash_chart(properties, "rbf_quarter_2_spent_not_approved", "doughnut", null , "Amount", false);
+
+
+
+
+
+
+        properties = { group_by: ["rbf_state"], head: ["hash"], data_type: ["size"], filters:JSON.stringify({}), summray:"random:20" };
+        draw_dash_chart(properties, "all_rbf_status", "radar", null , "Amount", false);
+
+
+        
+
+        let stages = ["Action_Plan_status", "Fund_Status_status", "IPR_-_1_status", "DVR_-_1_status", "IPR_-_2_status", "DVR_-_2_status", "Six_Monthly_Expenditure_status"]
+        
+        chart_type = ["line", "polarArea", "bar", "horizontalBar", "doughnut", "line", "pie" ]
+
+        let check = 0
+        
+        
+        jQuery.each(stages, function(idx, unit){
+
+            if(chart_type[idx]==="line")
+            {
+
+                ctype = check++ == 0 ? "start" : "end"
+            }
+            else
+            {
+                ctype = false
+            }
+
+            properties = { group_by: [unit], head: ["hash"], data_type: ["size"], filters:JSON.stringify({}), summray:"random:20" };
+            draw_dash_chart(properties, unit, chart_type[idx], null , "Amount", ctype);
+        })
+    }
+
+    
+
+
+
+
+
+    jQuery( document ).ready(function() {
+        init();
+
+        jQuery("#chart_attribute_set").sortable({
+            connectWith: "#chart_attribute_set_order"
+        })
+            .disableSelection();
+
+        jQuery("#chart_attribute_set_order").sortable({
+            connectWith: "#chart_attribute_set"
+        })
+            .disableSelection();
+
+        jQuery( "#chart_attribute_set_order" ).data( "ui-sortable" ).floating = true;
+
+        jQuery('#chart_attribute_set_order').on('sortupdate', order_chart);
+    });
+    
+
+    </script>
+    
+    <!-- <script src="{%static 'admin_panel/assets/js/datatable_function.js' %}"></script> -->
+    <script src="{%static 'admin_panel/assets/js/analytics.js' %}"></script>
+    <link rel="stylesheet" href="{%static 'admin_panel/assets/css/data_table_custom.css'%}">
+
+
+
+
+    <link rel="stylesheet" type="text/css" href="{%static 'admin_panel/vendors/jquery-ui/css/jquery-ui.min.css'%}">
+    <script type="text/javascript" src="{%static 'admin_panel/vendors/jquery-ui/js/jquery-ui.min.js'%}"></script>
+
+
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script> -->
+
+
+    <!-- Data table Prereq -->
+    <script src="{%static 'admin_panel/vendors/datatables.net/js/jquery.dataTables.min.js'%}"></script>
+    <script src="{%static 'admin_panel/vendors/datatables.net-bs4/js/dataTables.bootstrap4.min.js'%}"></script>
+    <script src="{%static 'admin_panel/vendors/datatables.net-buttons/js/dataTables.buttons.min.js'%}"></script>
+    <script src="{%static 'admin_panel/vendors/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js'%}"></script>
+    <link rel="stylesheet" href="{%static 'admin_panel/vendors/datatables.net-bs4/css/dataTables.bootstrap4.min.css'%}">
+
+    <script src="{%static 'admin_panel/vendors/cell_edit/js/dataTables.cellEdit.js'%}"></script>
+
+
+    <!-- <script src="{%static 'admin_panel/vendors/cell_edit/js/dataTables.cellEdit.js'%}"></script> -->
+
+
+
+    <script src="{%static 'admin_panel/vendors/momentjs/moment.min.js'%}"></script>
+
+    <script src="{%static 'admin_panel/assets/js/datatable_function.js' %}"></script>
+
+    <script src="{%static 'admin_panel/assets/js/prepare_data_table.js'%}"></script>
+
+    <script>
+        var my_awesome_script = document.createElement('script');
+        my_awesome_script.setAttribute('src',("{%static 'admin_panel/assets/js/frame_graph_js/' %}"+ frame_name + ".js"));
+        document.head.appendChild(my_awesome_script);
+    </script>
+
+
+    <!-- <script src="{%static 'admin_panel/assets/js/' %}" +></script> -->
+    
+    <!-- <script src="{%static 'admin_panel/vendors/jszip/dist/jszip.min.js'%}"></script> -->
+    <!-- <script src="{%static 'admin_panel/vendors/pdfmake/build/pdfmake.min.js'%}"></script> -->
+    <!-- <script src="{%static 'admin_panel/vendors/pdfmake/build/vfs_fonts.js'%}"></script> -->
+    <!-- <script src="{%static 'admin_panel/vendors/datatables.net-buttons/js/buttons.html5.min.js'%}"></script> -->
+    <!-- <script src="{%static 'admin_panel/vendors/datatables.net-buttons/js/buttons.print.min.js'%}"></script> -->
+    <!-- <script src="{%static 'admin_panel/vendors/datatables.net-buttons/js/buttons.colVis.min.js'%}"></script> -->
+    
+
+{% endblock %}>
